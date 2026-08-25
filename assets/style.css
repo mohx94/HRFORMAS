@@ -183,7 +183,7 @@ table.doc-table th{background:var(--sand-light);font-weight:800;color:var(--ink)
 .avoid-break{page-break-inside:avoid;}
 
 /* Contract table (mirrored EN/AR bordered layout matching official template) */
-table.ct-table{width:100%;border-collapse:collapse;margin:0 0 4px;table-layout:fixed;page-break-inside:auto;}
+table.ct-table{width:100%;border-collapse:collapse;margin:0 0 4px;page-break-inside:auto;}
 .ct-table td, .ct-table th{border:1px solid #444;padding:9px 10px;font-size:12.5px;vertical-align:middle;}
 .ct-table tr{page-break-inside:avoid;}
 .ct-head th{background:#4a4a4a;color:#fff;font-size:13px;font-weight:800;text-align:center;padding:9px;}

@@ -151,7 +151,7 @@ function ctLogo(){
   return `<div style="margin-bottom:10px"><img src="assets/logo.png" style="height:44px"></div>`;
 }
 function ctHeadRow(en, ar){
-  return `<tr class="ct-head"><th style="width:50%">${en}</th><th style="width:50%">${ar}</th></tr>`;
+  return `<tr class="ct-head"><th colspan="2" style="width:50%">${en}</th><th colspan="2" style="width:50%">${ar}</th></tr>`;
 }
 function ctRow2(enHtml, arHtml){
   return `<tr><td class="ltr" colspan="2">${enHtml}</td><td class="rtl" colspan="2">${arHtml}</td></tr>`;
