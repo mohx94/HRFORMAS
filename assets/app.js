@@ -361,12 +361,12 @@ function signBox(labelAr){
 }
 
 /* ---------------- إرسال بالبريد (تنزيل PDF + فتح Outlook Web معبأ) ---------------- */
-const EMAIL_BODY_BY_CAT = {
-  certificates: 'السلام عليكم،\n\nمرفق طي هذا الملف (%FORM%) الخاص بالموظف: %NAME%.\nآمل التكرم بالاطلاع.\n\nشاكرين لكم حسن تعاونكم.',
-  contracts: 'السلام عليكم،\n\nمرفق طي هذا عقد العمل (%FORM%) الخاص بالموظف: %NAME%، وذلك للاطلاع والاعتماد.\n\nشاكرين لكم حسن تعاونكم.',
-  termination: 'السلام عليكم،\n\nمرفق طي هذا الملف (%FORM%) الخاص بالموظف: %NAME%.\nآمل التكرم بالاطلاع واتخاذ اللازم.\n\nشاكرين لكم حسن تعاونكم.',
-  financial: 'السلام عليكم،\n\nمرفق طي هذا الملف (%FORM%) الخاص بالموظف: %NAME%، وذلك للاعتماد المالي اللازم.\n\nشاكرين لكم حسن تعاونكم.',
-  operations: 'السلام عليكم،\n\nمرفق طي هذا الملف (%FORM%) الخاص بالموظف: %NAME%.\nآمل التكرم بالاطلاع.\n\nشاكرين لكم حسن تعاونكم.',
+const EMAIL_ACTION_BY_CAT = {
+  certificates: 'نأمل التكرم بالاطلاع.',
+  contracts: 'نأمل التكرم بالاطلاع والتفضل بالاعتماد والتوقيع.',
+  termination: 'نأمل التكرم بالاطلاع واتخاذ اللازم نحوه.',
+  financial: 'نأمل التكرم بالاطلاع والتفضل بالاعتماد المالي اللازم.',
+  operations: 'نأمل التكرم بالاطلاع.',
 };
 
 function currentEmployeeDisplayName(){
@@ -374,12 +374,31 @@ function currentEmployeeDisplayName(){
   const guess = manualValues.employeeName || manualValues.name || manualValues.sponsoredName || manualValues.employeeNameEn;
   return guess || '';
 }
+function currentCompanyName(){
+  if(currentEmployee) return companyOf(currentEmployee).nameAr;
+  const key = manualValues.company;
+  return (COMPANIES[key] || DEFAULT_COMPANY).nameAr;
+}
 
 function buildEmailText(form){
   const name = currentEmployeeDisplayName();
+  const companyName = currentCompanyName();
   const subject = `${form.titleAr}${name ? ' - ' + name : ''}`;
-  const template = EMAIL_BODY_BY_CAT[form.cat] || EMAIL_BODY_BY_CAT.operations;
-  const body = template.replace(/%FORM%/g, form.titleAr).replace(/%NAME%/g, name || 'غير محدد');
+  const actionLine = EMAIL_ACTION_BY_CAT[form.cat] || EMAIL_ACTION_BY_CAT.operations;
+  const body =
+`تحية طيبة وبعد،
+
+نرفق لكم طيّه المستند التالي:
+${form.titleAr}
+
+الخاص بالموظف/ة: ${name || '—'}
+
+${actionLine}
+
+ولكم منا خالص الشكر والتقدير.
+
+إدارة الموارد البشرية
+${companyName}`;
   return {subject, body};
 }
 
