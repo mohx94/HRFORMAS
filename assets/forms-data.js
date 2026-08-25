@@ -182,9 +182,19 @@ const FORM_TAAREEF_RATIB = {
         <div class="en">${co.nameEn} certifies, CR No.: ${co.cr}, that Mr. <b>${esc(emp.nameEn||emp.nameAr)}</b> — Nationality: ${esc(emp.nationalityEn)} — ID No.: ${esc(emp.idNumber)} — Job Title: ${esc(emp.jobTitleEn||emp.jobTitleAr)} — Joining Date: ${fmtDate(emp.joinDate)}.</div>
       </div>
       <div class="bi-row">
-        <div class="ar">يعمل لدينا وتحت كفالتنا، ويتقاضى راتباً شهرياً قدره: <b>${money(emp.total)} ريال</b>${m.commissionNote?('، '+esc(m.commissionNote)):''}، وذلك دون أن تكون على الشركة أدنى مسؤولية.</div>
-        <div class="en">He works for us and under our sponsorship, and receives a monthly salary of: <b>${money(emp.total)} Riyals</b>${m.commissionNote?(', '+esc(m.commissionNote)):''}, without the company being under any responsibility.</div>
+        <div class="ar">يعمل لدينا وتحت كفالتنا، ويتقاضى راتباً شهرياً وفق التفصيل التالي${m.commissionNote?('، '+esc(m.commissionNote)):''}، وذلك دون أن تكون على الشركة أدنى مسؤولية.</div>
+        <div class="en">He works for us and under our sponsorship, and receives a monthly salary as detailed below${m.commissionNote?(', '+esc(m.commissionNote)):''}, without the company being under any responsibility.</div>
       </div>
+      <table class="doc-table">
+        <thead><tr><th>البند</th><th>المبلغ (ر.س)</th></tr></thead>
+        <tbody>
+          <tr><td>الراتب الأساسي</td><td>${money(emp.basic)}</td></tr>
+          <tr><td>بدل السكن</td><td>${money(emp.housing)}</td></tr>
+          <tr><td>بدل النقل</td><td>${money(emp.transport)}</td></tr>
+          <tr><td>بدلات أخرى</td><td>${money(emp.living)}</td></tr>
+          <tr><td><b>الراتب الإجمالي</b></td><td><b>${money(emp.total)}</b></td></tr>
+        </tbody>
+      </table>
       <div class="bi-row">
         <div class="ar">حُررت هذه الشهادة للموظف بناءً على طلبه لتقديمها إلى: <b>${esc(m.destination)}</b>.</div>
         <div class="en">This certificate has been issued to the employee at his request for submission to: <b>${esc(m.destination)}</b>.</div>
