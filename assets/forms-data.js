@@ -116,6 +116,146 @@ const FORM_MALAF_MUWAZAF = {
   }
 };
 
+const FORM_TAAREEF_SAFARA = {
+  id:'taareef-safara', cat:'certificates', titleAr:'وثيقة تعريف بموظف (لسفارة)',
+  manualFields:[
+    {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
+    {key:'destination', label:'الجهة المقدَّم إليها (مثال: السفارة الفرنسية)', type:'text', default:'من يهمه الأمر'},
+    {key:'salaryText', label:'نص الراتب الشهري (مثال: 25,000 ريال)', type:'text', default: e=> e ? (money(e.total)+' ريال') : ''},
+  ],
+  render(emp, m){
+    const co = companyOf(emp);
+    return `
+      ${docHeader(emp, 'وثيقة تعريف بموظف', 'Staff Identification Document')}
+      <div class="row">${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}</div>
+      <div class="bi-row">
+        <div class="ar">تشهد ${co.nameAr} — سجل تجاري رقم: ${co.cr} — بأن السيد: <b>${esc(emp.nameAr)}</b> (${esc(emp.nameEn||'')}) — الجنسية: ${esc(emp.nationalityAr)} — رقم الجواز: ${esc(emp.passportNumber)} — رقم الهوية: ${esc(emp.idNumber)} — المسمى الوظيفي: ${esc(emp.jobTitleAr)} — تاريخ الالتحاق: ${fmtDate(emp.joinDate)}.</div>
+        <div class="en">${co.nameEn} certifies, CR No.: ${co.cr}, that Mr. <b>${esc(emp.nameEn||emp.nameAr)}</b> — Nationality: ${esc(emp.nationalityEn)} — Passport No.: ${esc(emp.passportNumber)} — ID No.: ${esc(emp.idNumber)} — Job Title: ${esc(emp.jobTitleEn||emp.jobTitleAr)} — Joining Date: ${fmtDate(emp.joinDate)}.</div>
+      </div>
+      <div class="bi-row">
+        <div class="ar">يعمل لدينا بموجب عقد قابل للتجديد، ويتقاضى راتباً شهرياً: <b>${esc(m.salaryText)}</b>. حُررت هذه الشهادة بناءً على طلب الموظف لتقديمها إلى: <b>${esc(m.destination)}</b>، وذلك دون أن تكون على الشركة أدنى مسؤولية.</div>
+        <div class="en">He works for us under a renewable contract and receives a monthly salary of: <b>${esc(m.salaryText)}</b>. This certificate was issued at the employee's request to be submitted to: <b>${esc(m.destination)}</b>, without the company being under any responsibility.</div>
+      </div>
+      <div class="sign-grid two" style="margin-top:60px">${signBox('إدارة الموارد البشرية')}${signBox('ختم الشركة')}</div>
+      ${docFooter(emp)}`;
+  }
+};
+
+const FORM_ADAM_MUMANAA = {
+  id:'adam-mumanaa', cat:'certificates', titleAr:'عدم ممانعة من السفر',
+  manualFields:[
+    {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
+    {key:'destinationCountry', label:'الدولة المقصودة', type:'text'},
+  ],
+  render(emp, m){
+    const co = companyOf(emp);
+    return `
+      ${docHeader(emp, 'عدم ممانعة من السفر', 'No Objection to Travel')}
+      <div class="row">${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}</div>
+      <div class="bi-row">
+        <div class="ar">نحن ${co.nameAr} — سجل تجاري رقم: ${co.cr} — لا مانع لدينا من سفر السيد: <b>${esc(emp.nameAr)}</b> (${esc(emp.nameEn||'')}) — الجنسية: ${esc(emp.nationalityAr)} — رقم الجواز: ${esc(emp.passportNumber)} — رقم الهوية: ${esc(emp.idNumber)} — المسمى الوظيفي: ${esc(emp.jobTitleAr)} — تاريخ الالتحاق: ${fmtDate(emp.joinDate)}.</div>
+        <div class="en">We, ${co.nameEn}, CR No.: ${co.cr}, have no objection to the travel of Mr. <b>${esc(emp.nameEn||emp.nameAr)}</b> — Nationality: ${esc(emp.nationalityEn)} — Passport No.: ${esc(emp.passportNumber)} — ID No.: ${esc(emp.idNumber)} — Job Title: ${esc(emp.jobTitleEn||emp.jobTitleAr)} — Joining Date: ${fmtDate(emp.joinDate)}.</div>
+      </div>
+      <div class="bi-row">
+        <div class="ar">إلى: <b>${esc(m.destinationCountry)}</b>، وتتحمل الشركة مسؤولية عودته إلى المملكة العربية السعودية، وذلك دون أن تكون على الشركة أدنى مسؤولية.</div>
+        <div class="en">To: <b>${esc(m.destinationCountry)}</b>. The company assumes responsibility for his return to the Kingdom of Saudi Arabia, without the company being under any further responsibility.</div>
+      </div>
+      <div class="sign-grid two" style="margin-top:60px">${signBox('إدارة الموارد البشرية')}${signBox('ختم الشركة')}</div>
+      ${docFooter(emp)}`;
+  }
+};
+
+const FORM_TAAREEF_RATIB = {
+  id:'taareef-ratib', cat:'certificates', titleAr:'تعريف بالراتب',
+  manualFields:[
+    {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
+    {key:'destination', label:'الجهة المقدَّم إليها', type:'text', default:'من يهمه الأمر'},
+    {key:'commissionNote', label:'ملاحظة عمولة إضافية (اختياري)', type:'text'},
+  ],
+  render(emp, m){
+    const co = companyOf(emp);
+    return `
+      ${docHeader(emp, 'تعريف بالراتب', 'Definition of Salary')}
+      <div class="row">${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}</div>
+      <div class="bi-row">
+        <div class="ar">تشهد ${co.nameAr} — سجل تجاري رقم: ${co.cr} — بأن السيد: <b>${esc(emp.nameAr)}</b> (${esc(emp.nameEn||'')}) — الجنسية: ${esc(emp.nationalityAr)} — رقم الهوية: ${esc(emp.idNumber)} — المسمى الوظيفي: ${esc(emp.jobTitleAr)} — تاريخ الالتحاق: ${fmtDate(emp.joinDate)}.</div>
+        <div class="en">${co.nameEn} certifies, CR No.: ${co.cr}, that Mr. <b>${esc(emp.nameEn||emp.nameAr)}</b> — Nationality: ${esc(emp.nationalityEn)} — ID No.: ${esc(emp.idNumber)} — Job Title: ${esc(emp.jobTitleEn||emp.jobTitleAr)} — Joining Date: ${fmtDate(emp.joinDate)}.</div>
+      </div>
+      <div class="bi-row">
+        <div class="ar">يعمل لدينا وتحت كفالتنا، ويتقاضى راتباً شهرياً قدره: <b>${money(emp.total)} ريال</b>${m.commissionNote?('، '+esc(m.commissionNote)):''}، وذلك دون أن تكون على الشركة أدنى مسؤولية.</div>
+        <div class="en">He works for us and under our sponsorship, and receives a monthly salary of: <b>${money(emp.total)} Riyals</b>${m.commissionNote?(', '+esc(m.commissionNote)):''}, without the company being under any responsibility.</div>
+      </div>
+      <div class="bi-row">
+        <div class="ar">حُررت هذه الشهادة للموظف بناءً على طلبه لتقديمها إلى: <b>${esc(m.destination)}</b>.</div>
+        <div class="en">This certificate has been issued to the employee at his request for submission to: <b>${esc(m.destination)}</b>.</div>
+      </div>
+      <div class="sign-grid two" style="margin-top:60px">${signBox('إدارة الموارد البشرية')}${signBox('ختم الشركة')}</div>
+      ${docFooter(emp)}`;
+  }
+};
+
+const FORM_TAAREEF_TATHBEET_RATIB = {
+  id:'taareef-tathbeet-ratib', cat:'certificates', titleAr:'تعريف وتثبيت الراتب',
+  manualFields:[
+    {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
+    {key:'destinationBank', label:'اسم الجهة/البنك المقدَّم إليها', type:'text', default: e=>e?.bankAr},
+  ],
+  render(emp, m){
+    const co = companyOf(emp);
+    return `
+      ${docHeader(emp, 'تعريف وتثبيت الراتب', 'Definition and Fixation of Salary')}
+      <div class="row">${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}</div>
+      <div class="bi-row">
+        <div class="ar">تشهد ${co.nameAr} — سجل تجاري رقم: ${co.cr} — بأن السيد: <b>${esc(emp.nameAr)}</b> (${esc(emp.nameEn||'')}) — الجنسية: ${esc(emp.nationalityAr)} — رقم الهوية: ${esc(emp.idNumber)} — المسمى الوظيفي: ${esc(emp.jobTitleAr)} — تاريخ الالتحاق: ${fmtDate(emp.joinDate)}.</div>
+        <div class="en">${co.nameEn} certifies, CR No.: ${co.cr}, that Mr. <b>${esc(emp.nameEn||emp.nameAr)}</b> — Nationality: ${esc(emp.nationalityEn)} — ID No.: ${esc(emp.idNumber)} — Job Title: ${esc(emp.jobTitleEn||emp.jobTitleAr)} — Joining Date: ${fmtDate(emp.joinDate)}.</div>
+      </div>
+      <div class="row">${kv('اسم البنك', emp.bankAr)}${kv('رقم الآيبان', emp.iban)}</div>
+      <table class="doc-table">
+        <thead><tr><th>البند</th><th>المبلغ (ر.س)</th></tr></thead>
+        <tbody>
+          <tr><td>الراتب الأساسي</td><td>${money(emp.basic)}</td></tr>
+          <tr><td>بدل السكن</td><td>${money(emp.housing)}</td></tr>
+          <tr><td>بدل النقل</td><td>${money(emp.transport)}</td></tr>
+          <tr><td>بدلات أخرى</td><td>${money(emp.living)}</td></tr>
+          <tr><td><b>الراتب الإجمالي</b></td><td><b>${money(emp.total)}</b></td></tr>
+        </tbody>
+      </table>
+      <div class="bi-row">
+        <div class="ar">وتلتزم الشركة بتحويل رواتب ومستحقات الموظف في مواعيدها الشهرية وحتى نهاية علاقته الوظيفية معنا، أو استلام إشعار خطي بانتهاء الالتزامات من قبلكم. حُررت هذه الشهادة بناءً على طلب الموظف لتقديمها إلى: <b>${esc(m.destinationBank)}</b>.</div>
+        <div class="en">The company undertakes to transfer the employee's salary and entitlements on their scheduled monthly dates until the end of his employment relationship with us, or upon receiving written notice from you regarding settlement of obligations. This certificate was issued at the employee's request for submission to: <b>${esc(m.destinationBank)}</b>.</div>
+      </div>
+      <div class="sign-grid two" style="margin-top:60px">${signBox('إدارة الموارد البشرية')}${signBox('ختم الشركة')}</div>
+      ${docFooter(emp)}`;
+  }
+};
+
+const FORM_TAAREEF_MUWAZAF_EOS = {
+  id:'taareef-muwazaf-eos', cat:'certificates', titleAr:'خطاب تعريف بموظف (مع مكافأة نهاية الخدمة)',
+  manualFields:[
+    {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
+    {key:'to', label:'الجهة الموجَّه إليها الخطاب', type:'text', default:'من يهمه الأمر'},
+    {key:'eosAmount', label:'مكافأة نهاية الخدمة (ر.س)', type:'number'},
+  ],
+  render(emp, m){
+    const co = companyOf(emp);
+    return `
+      ${docHeader(emp, 'خطاب تعريف بموظف', 'Definition of an Employee')}
+      <div class="row">${kv('الرقم الوظيفي', emp.jobNo)}${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}</div>
+      <div class="row">${kv('إلى', m.to)}</div>
+      <div class="bi-row">
+        <div class="ar">تشهد ${co.nameAr} بأن السيد: <b>${esc(emp.nameAr)}</b> (${esc(emp.nameEn||'')}) — إقامة رقم: ${esc(emp.idNumber)} — تاريخ التعيين: ${fmtDate(emp.joinDate)} — الوظيفة: ${esc(emp.jobTitleAr)}.</div>
+        <div class="en">${co.nameEn} certifies that Mr. <b>${esc(emp.nameEn||emp.nameAr)}</b> — ID No.: ${esc(emp.idNumber)} — Date of Hiring: ${fmtDate(emp.joinDate)} — Job: ${esc(emp.jobTitleEn||emp.jobTitleAr)}.</div>
+      </div>
+      <div class="row">${kv('مكافأة نهاية الخدمة المستحقة', money(m.eosAmount))}</div>
+      <div class="bi-row">
+        <div class="ar">ولا يزال يعمل لدينا حتى تاريخ كتابة هذا الخطاب، ويُجدَّد عقده تلقائياً. وقد تم منحه هذه الشهادة بناءً على طلبه، دون أن تتحمل ${co.nameAr} أدنى مسؤولية تجاه حقوق الغير.</div>
+        <div class="en">He remains employed by us as of the date of this letter, and his contract is renewed automatically. This certificate was granted to him at his request; ${co.nameEn} assumes no liability whatsoever towards the rights of third parties.</div>
+      </div>
+      <div class="sign-grid two" style="margin-top:60px">${signBox('إدارة الموارد البشرية')}${signBox('ختم الشركة')}</div>
+      ${docFooter(emp)}`;
+  }
+};
+
 /* ============================================================
    2) عقود العمل
    ============================================================ */
@@ -1099,6 +1239,7 @@ const FORM_INVESTIGATION_RECORD = {
 const FORMS = [
   // الشهادات والتعريفات
   FORM_TAAREEF_AR, FORM_TAAREEF_EN, FORM_SHAHADAT_KHIBRA, FORM_MAALOOMAT_MUWAZAF, FORM_MALAF_MUWAZAF,
+  FORM_TAAREEF_SAFARA, FORM_ADAM_MUMANAA, FORM_TAAREEF_RATIB, FORM_TAAREEF_TATHBEET_RATIB, FORM_TAAREEF_MUWAZAF_EOS,
   // عقود العمل
   FORM_AQD_MAWAD, FORM_AQD_NAQLIYAT, FORM_AQD_SIYANA, FORM_AQD_MAWAD_AMOLA, FORM_AQD_NAQLIYAT_AMOLA, FORM_AQD_TASHEERA,
   // إنهاء الخدمة وإخلاء الطرف
