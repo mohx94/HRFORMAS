@@ -190,17 +190,34 @@ function renderShell(){
 
 function renderSidebar(){
   const el = document.getElementById('sidebar');
+  el.innerHTML = `<div class="sidebar-search"><input type="text" id="sidebarSearch" placeholder="ابحث عن نموذج..."></div><div id="sidebarList"></div>`;
+  renderSidebarList('');
+  document.getElementById('sidebarSearch').addEventListener('input', (e)=>{
+    renderSidebarList(e.target.value.trim());
+  });
+}
+
+function renderSidebarList(query){
+  const listEl = document.getElementById('sidebarList');
+  const q = query.toLowerCase();
   let html = '';
+  let anyMatch = false;
   CATEGORIES.forEach(cat=>{
+    const forms = FORMS.filter(f=>f.cat===cat.id && (!q || f.titleAr.toLowerCase().includes(q)));
+    if(forms.length===0) return;
+    anyMatch = true;
     html += `<h3>${cat.title}</h3>`;
-    FORMS.filter(f=>f.cat===cat.id).forEach(f=>{
+    forms.forEach(f=>{
       html += `<button class="nav-item" data-id="${f.id}">${f.titleAr}</button>`;
     });
   });
-  el.innerHTML = html;
-  el.querySelectorAll('.nav-item').forEach(btn=>{
+  if(!anyMatch){
+    html = `<div class="no-results" style="padding:16px 4px">لا توجد نتائج</div>`;
+  }
+  listEl.innerHTML = html;
+  listEl.querySelectorAll('.nav-item').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      el.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+      listEl.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       const form = FORMS.find(f=>f.id===btn.dataset.id);
       openForm(form);
@@ -215,9 +232,28 @@ function renderWelcome(){
       <img src="assets/logo.png" alt="">
       <h1>منصة نماذج الموارد البشرية</h1>
       <p>اختر نموذجاً من القائمة أدناه، أو من القائمة الجانبية. حدد الموظف وستُعبّى بياناته تلقائياً، ثم أكمل الحقول الخاصة بالحالة واطبع مباشرة بصيغة A4.</p>
-    </div>`;
+    </div>
+    <div class="search-bar">
+      <input type="text" id="formSearch" placeholder="ابحث عن نموذج بالاسم...">
+      <span class="icon">🔍</span>
+    </div>
+    <div id="formsDirectory"></div>`;
+  main.innerHTML = html;
+  renderFormsDirectory('');
+  document.getElementById('formSearch').addEventListener('input', (e)=>{
+    renderFormsDirectory(e.target.value.trim());
+  });
+}
+
+function renderFormsDirectory(query){
+  const el = document.getElementById('formsDirectory');
+  const q = query.toLowerCase();
+  let html = '';
+  let anyMatch = false;
   CATEGORIES.forEach(cat=>{
-    const forms = FORMS.filter(f=>f.cat===cat.id);
+    const forms = FORMS.filter(f=>f.cat===cat.id && (!q || f.titleAr.toLowerCase().includes(q)));
+    if(forms.length===0) return;
+    anyMatch = true;
     html += `<div class="home-cat"><h3>${cat.title}</h3><div class="home-grid">`;
     forms.forEach(f=>{
       html += `<button class="form-card" data-id="${f.id}">
@@ -227,8 +263,11 @@ function renderWelcome(){
     });
     html += `</div></div>`;
   });
-  main.innerHTML = html;
-  main.querySelectorAll('.form-card').forEach(btn=>{
+  if(!anyMatch){
+    html = `<div class="no-results">لا توجد نماذج مطابقة لبحثك</div>`;
+  }
+  el.innerHTML = html;
+  el.querySelectorAll('.form-card').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const form = FORMS.find(f=>f.id===btn.dataset.id);
       document.querySelectorAll('.nav-item').forEach(b=>{
