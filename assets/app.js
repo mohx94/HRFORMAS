@@ -395,8 +395,7 @@ function docHeader(emp, subtitleAr, subtitleEn){
     </div>`;
 }
 function docFooter(emp){
-  const co = companyOf(emp);
-  return `<div class="doc-footer">${co.nameAr} — إدارة الموارد البشرية · تم إنشاء هذا المستند إلكترونياً</div>`;
+  return '';
 }
 function signBox(labelAr){
   return `<div class="sign-box"><div class="line">${labelAr}</div></div>`;
