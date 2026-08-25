@@ -249,8 +249,15 @@ function openForm(form){
 
   main.innerHTML = `
     <div class="form-toolbar">
-      <h2>${form.titleAr}</h2>
-      <button class="btn-print" id="printBtn" ${standalone?'':'disabled'}>طباعة A4</button>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn-back" id="backBtn">→ الرئيسية</button>
+        <h2>${form.titleAr}</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <input type="email" id="emailTo" placeholder="بريد المستلم (اختياري)" style="padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-family:inherit;font-size:13px;min-width:200px">
+        <button class="btn-email" id="emailBtn" ${standalone?'':'disabled'}>إرسال بالبريد ✉️</button>
+        <button class="btn-print" id="printBtn" ${standalone?'':'disabled'}>طباعة A4</button>
+      </div>
     </div>
     ${standalone ? `<div class="hint" style="margin-bottom:14px">هذا النموذج يُعبّى يدوياً بالكامل (لا يعتمد على بيانات موظف مسجّل في الملف).</div>` : `
     <div class="picker-bar">
@@ -262,8 +269,14 @@ function openForm(form){
       <div id="empSummary"></div>
     </div>`}
     <div class="manual-fields" id="manualFields"></div>
+    <div id="emailNote"></div>
     <div class="sheet-wrap"><div class="sheet" id="sheet">${standalone?'':'<div class="tag-empty" style="padding:60px;text-align:center;display:block;">حدد موظفاً لعرض النموذج</div>'}</div></div>
   `;
+
+  document.getElementById('backBtn').addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+    renderWelcome();
+  });
 
   if(!standalone){
     const dl = document.getElementById('empList');
@@ -280,11 +293,13 @@ function openForm(form){
           `<div class="emp-summary"><b>${esc(emp.nameAr)}</b> — ${esc(emp.jobTitleAr)} — ${esc(emp.deptAr||emp.workLocationAr)}</div>`;
         renderSheet();
         document.getElementById('printBtn').disabled = false;
+        document.getElementById('emailBtn').disabled = false;
       }
     });
   }
 
   document.getElementById('printBtn').addEventListener('click', ()=> window.print());
+  document.getElementById('emailBtn').addEventListener('click', ()=> sendByEmail(form));
 
   renderManualFields();
   if(standalone){ renderSheet(); }
@@ -343,6 +358,69 @@ function docFooter(emp){
 }
 function signBox(labelAr){
   return `<div class="sign-box"><div class="line">${labelAr}</div></div>`;
+}
+
+/* ---------------- إرسال بالبريد (تنزيل PDF + فتح Outlook Web معبأ) ---------------- */
+const EMAIL_BODY_BY_CAT = {
+  certificates: 'السلام عليكم،\n\nمرفق طي هذا الملف (%FORM%) الخاص بالموظف: %NAME%.\nآمل التكرم بالاطلاع.\n\nشاكرين لكم حسن تعاونكم.',
+  contracts: 'السلام عليكم،\n\nمرفق طي هذا عقد العمل (%FORM%) الخاص بالموظف: %NAME%، وذلك للاطلاع والاعتماد.\n\nشاكرين لكم حسن تعاونكم.',
+  termination: 'السلام عليكم،\n\nمرفق طي هذا الملف (%FORM%) الخاص بالموظف: %NAME%.\nآمل التكرم بالاطلاع واتخاذ اللازم.\n\nشاكرين لكم حسن تعاونكم.',
+  financial: 'السلام عليكم،\n\nمرفق طي هذا الملف (%FORM%) الخاص بالموظف: %NAME%، وذلك للاعتماد المالي اللازم.\n\nشاكرين لكم حسن تعاونكم.',
+  operations: 'السلام عليكم،\n\nمرفق طي هذا الملف (%FORM%) الخاص بالموظف: %NAME%.\nآمل التكرم بالاطلاع.\n\nشاكرين لكم حسن تعاونكم.',
+};
+
+function currentEmployeeDisplayName(){
+  if(currentEmployee) return currentEmployee.nameAr;
+  const guess = manualValues.employeeName || manualValues.name || manualValues.sponsoredName || manualValues.employeeNameEn;
+  return guess || '';
+}
+
+function buildEmailText(form){
+  const name = currentEmployeeDisplayName();
+  const subject = `${form.titleAr}${name ? ' - ' + name : ''}`;
+  const template = EMAIL_BODY_BY_CAT[form.cat] || EMAIL_BODY_BY_CAT.operations;
+  const body = template.replace(/%FORM%/g, form.titleAr).replace(/%NAME%/g, name || 'غير محدد');
+  return {subject, body};
+}
+
+function sendByEmail(form){
+  const sheetEl = document.getElementById('sheet');
+  if(!sheetEl || sheetEl.querySelector('.tag-empty')){
+    alert('حدد موظفاً أولاً لعرض النموذج قبل الإرسال.');
+    return;
+  }
+  const emailBtn = document.getElementById('emailBtn');
+  const note = document.getElementById('emailNote');
+  emailBtn.disabled = true;
+  emailBtn.textContent = 'جارِ تجهيز PDF...';
+
+  const name = currentEmployeeDisplayName();
+  const safeName = (name || 'نموذج').replace(/[\\/:*?"<>|]/g,'').trim();
+  const fileName = `${form.titleAr} - ${safeName}.pdf`.replace(/\s+/g,' ');
+
+  html2pdf().set({
+    margin: 0,
+    filename: fileName,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'] }
+  }).from(sheetEl).save().then(()=>{
+    const to = (document.getElementById('emailTo').value || '').trim();
+    const {subject, body} = buildEmailText(form);
+    const params = new URLSearchParams();
+    if(to) params.set('to', to);
+    params.set('subject', subject);
+    params.set('body', body);
+    const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?${params.toString()}`;
+    window.open(outlookUrl, '_blank');
+    note.innerHTML = `<div class="email-note">📎 تم تنزيل الملف <b>${esc(fileName)}</b> — أرفقه في نافذة Outlook التي فُتحت (اسحبه من مجلد التنزيلات) ثم اضغط إرسال. المتصفح لا يسمح بإرفاق الملف تلقائياً لأسباب أمنية.</div>`;
+  }).catch(err=>{
+    note.innerHTML = `<div class="email-note" style="color:var(--danger)">تعذر تجهيز الملف: ${esc(err.message||err)}</div>`;
+  }).finally(()=>{
+    emailBtn.disabled = false;
+    emailBtn.textContent = 'إرسال بالبريد ✉️';
+  });
 }
 
 /* ---------------- بدء التشغيل ---------------- */
