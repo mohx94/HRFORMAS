@@ -228,7 +228,7 @@ function renderEmploymentContract(emp, m, opts){
     ctRow4('E-mail:', esc(emp.email), esc(emp.email), ':البريد الالكتروني')
   );
 
-  html += `<div class="avoid-break" style="margin-top:18px">${ctLogo()}</div>`;
+  html += `<div style="page-break-before:always">${ctLogo()}</div>`;
   html += ctPlainTitle('Contract Terms', 'بنود العقد');
 
   html += ctTable(
@@ -289,7 +289,7 @@ function renderEmploymentContract(emp, m, opts){
     ctRow4('IBAN:', esc(emp.iban), esc(emp.iban), ':رقم الايبان')
   );
 
-  html += `<div class="avoid-break" style="margin-top:18px">${ctLogo()}</div>`;
+  html += `<div style="page-break-before:always">${ctLogo()}</div>`;
   html += ctTable(
     ctHeadRow("8. First Party's Obligations", 'التزامات الطرف الأول .8') +
     CONTRACT_OBLIGATIONS.map(([n,en,ar])=>ctClause(n,en,ar)).join('')
@@ -299,7 +299,7 @@ function renderEmploymentContract(emp, m, opts){
     CONTRACT_DUTIES.map(([n,en,ar])=>ctClause(n,en,ar)).join('')
   );
 
-  html += `<div class="avoid-break" style="margin-top:18px">${ctLogo()}</div>`;
+  html += `<div style="page-break-before:always">${ctLogo()}</div>`;
   html += ctTable(
     ctHeadRow('10. General Provisions', 'أحكام عامة .10') +
     CONTRACT_GENERAL.map(([n,en,ar])=>ctClause(n,en,ar)).join('')
