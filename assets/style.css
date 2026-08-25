@@ -200,6 +200,7 @@ table.ct-table{width:100%;border-collapse:collapse;margin:0 0 4px;page-break-ins
 .ct-table td, .ct-table th{border:1px solid #444;padding:9px 10px;font-size:12.5px;vertical-align:middle;}
 .ct-table tr{page-break-inside:avoid;}
 .ct-head th{background:#4a4a4a;color:#fff;font-size:13px;font-weight:800;text-align:center;padding:9px;}
+.ct-table tr.ct-head{page-break-after:avoid;}
 .ct-table td.ltr{direction:ltr;text-align:left;font-family:var(--font-en);}
 .ct-table td.rtl{direction:rtl;text-align:right;font-family:var(--font-ar);}
 .ct-table td.ctr{text-align:center;}

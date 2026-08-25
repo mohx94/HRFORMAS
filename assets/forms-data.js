@@ -173,10 +173,10 @@ function ctClause(num, enText, arText){
   </tr>`;
 }
 function ctTable(rowsHtml){
-  return `<table class="ct-table avoid-break" dir="ltr"><tbody>${rowsHtml}</tbody></table>`;
+  return `<div class="avoid-break"><table class="ct-table" dir="ltr"><tbody>${rowsHtml}</tbody></table></div>`;
 }
 function ctTableLoose(rowsHtml){
-  return `<table class="ct-table" dir="ltr"><tbody>${rowsHtml}</tbody></table>`;
+  return `<div class="avoid-break"><table class="ct-table" dir="ltr"><tbody>${rowsHtml}</tbody></table></div>`;
 }
 function ctPlainTitle(en, ar){
   return `<div class="ct-plain-title"><span>${en}</span><span>${ar}</span></div>`;
