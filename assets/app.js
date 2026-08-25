@@ -408,11 +408,11 @@ function sendByEmail(form){
   }).from(sheetEl).save().then(()=>{
     const to = (document.getElementById('emailTo').value || '').trim();
     const {subject, body} = buildEmailText(form);
-    const params = new URLSearchParams();
-    if(to) params.set('to', to);
-    params.set('subject', subject);
-    params.set('body', body);
-    const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?${params.toString()}`;
+    const parts = [];
+    if(to) parts.push('to=' + encodeURIComponent(to));
+    parts.push('subject=' + encodeURIComponent(subject));
+    parts.push('body=' + encodeURIComponent(body));
+    const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?${parts.join('&')}`;
     window.open(outlookUrl, '_blank');
     note.innerHTML = `<div class="email-note">📎 تم تنزيل الملف <b>${esc(fileName)}</b> — أرفقه في نافذة Outlook التي فُتحت (اسحبه من مجلد التنزيلات) ثم اضغط إرسال. المتصفح لا يسمح بإرفاق الملف تلقائياً لأسباب أمنية.</div>`;
   }).catch(err=>{
