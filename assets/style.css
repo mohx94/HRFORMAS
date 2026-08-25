@@ -69,9 +69,22 @@ body{
 
 /* ---------- Main content ---------- */
 .main{flex:1;overflow-y:auto;padding:28px;}
-.welcome{max-width:640px;margin:60px auto;text-align:center;color:var(--ink-soft);}
-.welcome img{height:70px;margin-bottom:18px;opacity:.85;}
-.welcome h1{color:var(--ink);font-size:22px;margin-bottom:6px;}
+.welcome{max-width:640px;margin:40px auto 30px;text-align:center;color:var(--ink-soft);}
+.welcome img{height:60px;margin-bottom:14px;opacity:.85;}
+.welcome h1{color:var(--ink);font-size:21px;margin-bottom:6px;}
+
+.home-cat{margin:0 auto 30px;max-width:1000px;}
+.home-cat h3{font-size:14px;color:var(--sand);text-transform:uppercase;letter-spacing:.06em;font-weight:800;margin:0 0 12px;padding-inline-start:2px;}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;}
+.form-card{
+  background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 16px;
+  text-align:right;cursor:pointer;font-family:inherit;transition:.15s;
+  display:flex;flex-direction:column;gap:6px;min-height:64px;justify-content:center;
+}
+.form-card:hover{border-color:var(--sand);box-shadow:0 4px 14px rgba(0,0,0,.06);transform:translateY(-1px);}
+.form-card .name{font-size:14px;font-weight:700;color:var(--ink);line-height:1.4;}
+.form-card .badge{font-size:10.5px;color:#fff;background:var(--sand);padding:2px 8px;border-radius:20px;display:inline-block;width:fit-content;}
+.brand{cursor:pointer;}
 
 /* Employee picker bar */
 .picker-bar{

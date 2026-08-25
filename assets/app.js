@@ -166,9 +166,8 @@ function renderShell(){
   document.getElementById('root').innerHTML = `
     <div id="app">
       <div class="topbar">
-        <div class="brand"><img src="assets/logo.png" alt=""><span>منصة نماذج الموارد البشرية — بيت هايل</span></div>
+        <div class="brand" id="brandHome"><img src="assets/logo.png" alt=""><span>منصة نماذج الموارد البشرية — بيت هايل</span></div>
         <div class="actions">
-          <button id="menuToggle" class="mobile-only" style="display:none">القائمة</button>
           <button id="logoutBtn">خروج</button>
         </div>
       </div>
@@ -180,6 +179,10 @@ function renderShell(){
   document.getElementById('logoutBtn').addEventListener('click', ()=>{
     sessionStorage.removeItem(SESSION_KEY);
     renderLogin();
+  });
+  document.getElementById('brandHome').addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+    renderWelcome();
   });
   renderSidebar();
   renderWelcome();
@@ -206,12 +209,34 @@ function renderSidebar(){
 }
 
 function renderWelcome(){
-  document.getElementById('main').innerHTML = `
+  const main = document.getElementById('main');
+  let html = `
     <div class="welcome">
       <img src="assets/logo.png" alt="">
-      <h1>مرحباً بك</h1>
-      <p>اختر نموذجاً من القائمة الجانبية للبدء. حدد رقم الموظف الوظيفي وسيتم تعبئة بياناته تلقائياً، ثم أكمل الحقول الخاصة بالحالة واطبع مباشرة بصيغة A4.</p>
+      <h1>منصة نماذج الموارد البشرية</h1>
+      <p>اختر نموذجاً من القائمة أدناه، أو من القائمة الجانبية. حدد الموظف وستُعبّى بياناته تلقائياً، ثم أكمل الحقول الخاصة بالحالة واطبع مباشرة بصيغة A4.</p>
     </div>`;
+  CATEGORIES.forEach(cat=>{
+    const forms = FORMS.filter(f=>f.cat===cat.id);
+    html += `<div class="home-cat"><h3>${cat.title}</h3><div class="home-grid">`;
+    forms.forEach(f=>{
+      html += `<button class="form-card" data-id="${f.id}">
+        <span class="name">${f.titleAr}</span>
+        ${f.standalone?'<span class="badge">تعبئة يدوية</span>':''}
+      </button>`;
+    });
+    html += `</div></div>`;
+  });
+  main.innerHTML = html;
+  main.querySelectorAll('.form-card').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const form = FORMS.find(f=>f.id===btn.dataset.id);
+      document.querySelectorAll('.nav-item').forEach(b=>{
+        b.classList.toggle('active', b.dataset.id===form.id);
+      });
+      openForm(form);
+    });
+  });
 }
 
 /* ---------------- فتح نموذج ---------------- */
