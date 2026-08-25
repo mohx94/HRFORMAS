@@ -408,38 +408,18 @@ function sendByEmail(form){
     alert('حدد موظفاً أولاً لعرض النموذج قبل الإرسال.');
     return;
   }
-  const emailBtn = document.getElementById('emailBtn');
   const note = document.getElementById('emailNote');
-  emailBtn.disabled = true;
-  emailBtn.textContent = 'جارِ تجهيز PDF...';
+  const to = (document.getElementById('emailTo').value || '').trim();
+  const {subject, body} = buildEmailText(form);
+  const parts = [];
+  if(to) parts.push('to=' + encodeURIComponent(to));
+  parts.push('subject=' + encodeURIComponent(subject));
+  parts.push('body=' + encodeURIComponent(body));
+  const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?${parts.join('&')}`;
 
-  const name = currentEmployeeDisplayName();
-  const safeName = (name || 'نموذج').replace(/[\\/:*?"<>|]/g,'').trim();
-  const fileName = `${form.titleAr} - ${safeName}.pdf`.replace(/\s+/g,' ');
-
-  html2pdf().set({
-    margin: 0,
-    filename: fileName,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['css', 'legacy'] }
-  }).from(sheetEl).save().then(()=>{
-    const to = (document.getElementById('emailTo').value || '').trim();
-    const {subject, body} = buildEmailText(form);
-    const parts = [];
-    if(to) parts.push('to=' + encodeURIComponent(to));
-    parts.push('subject=' + encodeURIComponent(subject));
-    parts.push('body=' + encodeURIComponent(body));
-    const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?${parts.join('&')}`;
-    window.open(outlookUrl, '_blank');
-    note.innerHTML = `<div class="email-note">📎 تم تنزيل الملف <b>${esc(fileName)}</b> — أرفقه في نافذة Outlook التي فُتحت (اسحبه من مجلد التنزيلات) ثم اضغط إرسال. المتصفح لا يسمح بإرفاق الملف تلقائياً لأسباب أمنية.</div>`;
-  }).catch(err=>{
-    note.innerHTML = `<div class="email-note" style="color:var(--danger)">تعذر تجهيز الملف: ${esc(err.message||err)}</div>`;
-  }).finally(()=>{
-    emailBtn.disabled = false;
-    emailBtn.textContent = 'إرسال بالبريد ✉️';
-  });
+  window.open(outlookUrl, '_blank');
+  note.innerHTML = `<div class="email-note">📄 ستفتح الآن نافذة الطباعة — اختر <b>"حفظ كملف PDF"</b> من قائمة الطابعة واحفظه على جهازك، ثم ارجع لتبويب Outlook الذي فُتح وأرفقه هناك قبل الإرسال.</div>`;
+  setTimeout(()=> window.print(), 350);
 }
 
 /* ---------------- بدء التشغيل ---------------- */
