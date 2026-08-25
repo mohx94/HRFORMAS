@@ -127,14 +127,14 @@ function sctDateRow(dateStr){
   return `<div class="sct-date-row"><span>date: ${dateStr}</span><span>التاريخ : ${dateStr}</span></div>`;
 }
 function sctRow2(enHtml, arHtml, shaded){
-  return `<tr class="${shaded?'shaded':''}"><td class="ltr b" colspan="2">${enHtml}</td><td class="rtl b" colspan="2">${arHtml}</td></tr>`;
+  return `<tr class="${shaded?'shaded':''}"><td class="ltr b" colspan="2" style="width:50%">${enHtml}</td><td class="rtl b" colspan="2" style="width:50%">${arHtml}</td></tr>`;
 }
 function sctRow4(enLabel, enVal, arVal, arLabel, shaded){
   return `<tr class="${shaded?'shaded':''}">
-    <td class="ltr b">${enLabel}</td>
-    <td class="ltr ctr">${enVal}</td>
-    <td class="rtl ctr">${arVal}</td>
-    <td class="rtl b">${arLabel}</td>
+    <td class="ltr b" style="width:18%">${enLabel}</td>
+    <td class="ltr ctr" style="width:32%">${enVal}</td>
+    <td class="rtl ctr" style="width:32%">${arVal}</td>
+    <td class="rtl b" style="width:18%">${arLabel}</td>
   </tr>`;
 }
 function sctTable(rowsHtml){
@@ -171,6 +171,41 @@ const FORM_TAAREEF_SAFARA = {
         sctRow2(
           `This certificate was issued at the employee's request to be submitted to <b>${esc(m.destinationEn)}</b>, without the company being under any responsibility whatsoever.`,
           `حُررت هذه الشهادة بناءً على طلب الموظف لتقديمها إلى <b>${esc(m.destinationAr)}</b>، وذلك دون أن تكون على الشركة أدنى مسؤولية.`
+        )
+      )}
+      ${sctFooterName(co.nameAr)}
+      ${docFooter(emp)}`;
+  }
+};
+
+const FORM_TAAREEF_RATIB_SAFARAT = {
+  id:'taareef-ratib-safarat', cat:'certificates', titleAr:'تعريف بالراتب (للسفارات)',
+  manualFields:[
+    {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
+    {key:'destinationAr', label:'اسم السفارة (عربي)', type:'text', default:'السفارة'},
+    {key:'destinationEn', label:'Embassy Name (EN)', type:'text', default:'the Embassy'},
+  ],
+  render(emp, m){
+    const co = companyOf(emp);
+    const dateStr = m.date?fmtDate(m.date):todayStr();
+    return `
+      ${sctHeader(co)}
+      ${sctTitle('تعريف بالراتب','Definition of salary')}
+      ${sctDateRow(dateStr)}
+      ${sctTable(
+        sctRow2(`${co.nameEn} certifies<br>Commercial Registration No.: ${co.cr}`, `تشهد ${co.nameAr}<br>سجل تجاري رقم: ${co.cr}`) +
+        sctRow2(`That Mr: ${esc(emp.nameEn||emp.nameAr)}`, `بأن السيد: ${esc(emp.nameAr)}`, true) +
+        sctRow4('Nationality:', esc(emp.nationalityEn), esc(emp.nationalityAr), 'الجنسية') +
+        sctRow4('passport number:', esc(emp.passportNumber), esc(emp.passportNumber), 'رقم الجواز') +
+        sctRow4('Identification Number:', esc(emp.idNumber), esc(emp.idNumber), 'رقم الهوية:') +
+        sctRow4('Job title:', esc(emp.jobTitleEn||emp.jobTitleAr), esc(emp.jobTitleAr), 'المسمى الوظيفي:') +
+        sctRow4('Joining Date:', fmtDate(emp.joinDate), fmtDate(emp.joinDate), 'تاريخ الالتحاق:') +
+        sctRow2('He works for us and receives a monthly salary', 'يعمل لدينا و يتقاضى راتب شهري', true) +
+        sctRow2(`${money(emp.total)} Riyals`, `${money(emp.total)} ريال`) +
+        sctRow2(
+          `This certificate has been issued to the employee at his request for submission to the <b>${esc(m.destinationEn)}</b>.`,
+          `حُررت هذه الشهادة للموظف بناءً على طلبه لتقديمها إلى <b>${esc(m.destinationAr)}</b>.`,
+          true
         )
       )}
       ${sctFooterName(co.nameAr)}
@@ -251,45 +286,50 @@ const FORM_TAAREEF_RATIB = {
   }
 };
 
-const FORM_TAAREEF_TATHBEET_RATIB = {
-  id:'taareef-tathbeet-ratib', cat:'certificates', titleAr:'تعريف وتثبيت الراتب',
-  manualFields:[
-    {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
-    {key:'destinationBankAr', label:'اسم البنك/الجهة (عربي)', type:'text', default: e=>e?.bankAr},
-    {key:'destinationBankEn', label:'Bank/Recipient Name (EN)', type:'text', default: e=>e?.bankEn},
-  ],
-  render(emp, m){
-    const co = companyOf(emp);
-    const dateStr = m.date?fmtDate(m.date):todayStr();
-    return `
-      ${sctHeader(co)}
-      ${sctTitle('تعريف وتثبيت الراتب','Definition and fixation of salary')}
-      ${sctDateRow(dateStr)}
-      ${sctTable(
-        sctRow2(`${co.nameEn} certifies<br>Commercial Registration No.: ${co.cr}`, `تشهد ${co.nameAr}<br>سجل تجاري رقم: ${co.cr}`) +
-        sctRow2(`That Mr: ${esc(emp.nameEn||emp.nameAr)}`, `بأن السيد: ${esc(emp.nameAr)}`, true) +
-        sctRow4('Nationality:', esc(emp.nationalityEn), esc(emp.nationalityAr), 'الجنسية:') +
-        sctRow4('Identification Number:', esc(emp.idNumber), esc(emp.idNumber), 'رقم الهوية:') +
-        sctRow4('Job title:', esc(emp.jobTitleEn||emp.jobTitleAr), esc(emp.jobTitleAr), 'المسمى الوظيفي:') +
-        sctRow4('Joining Date:', fmtDate(emp.joinDate), fmtDate(emp.joinDate), 'تاريخ الالتحاق:') +
-        sctRow4('Bank Name:', esc(emp.bankEn||emp.bankAr), esc(emp.bankAr), 'اسم البنك:') +
-        sctRow4('IBAN Number:', esc(emp.iban), esc(emp.iban), 'رقم الايبان:') +
-        sctRow2('He works for us and receives a monthly salary', 'يعمل لدينا و يتقاضى راتب شهري', true) +
-        sctRow4('basic salary', money(emp.basic), money(emp.basic), 'الراتب الأساسي') +
-        sctRow4('Housing allowance', money(emp.housing), money(emp.housing), 'بدل السكن') +
-        sctRow4('Transportation allowance', money(emp.transport), money(emp.transport), 'بدل النقل') +
-        sctRow4('Other allowances', money(emp.living), money(emp.living), 'بدلات أخرى') +
-        sctRow4('total salary', `<b>${money(emp.total)}</b>`, `<b>${money(emp.total)}</b>`, 'الراتب الإجمالي', true) +
-        sctRow2(
-          `The Company undertakes to transfer the employee's salary and entitlements on their scheduled monthly dates until the termination of their employment relationship with us or until receipt of written notification from you regarding the settlement of their obligations. This certificate has been issued at the employee's request for submission to <u>${esc(m.destinationBankEn)}</u>.`,
-          `وتلتزم الشركة بتحويل رواتب ومستحقات الموظف في مواعيدها الشهرية وحتى نهاية علاقته الوظيفية معنا أو استلام إشعار خطي بانتهاء الالتزامات عليه من قبلكم، وحُررت هذه الشهادة بناءً على طلب الموظف لتقديمها إلى <u>${esc(m.destinationBankAr)}</u>.`,
-          true
-        )
-      )}
-      ${sctFooterName(co.nameAr)}
-      ${docFooter(emp)}`;
-  }
-};
+function makeTathbeetRatibForm(id, titleAr, presetBankAr, presetBankEn){
+  return {
+    id, cat:'certificates', titleAr,
+    manualFields:[
+      {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
+      {key:'destinationBankAr', label:'اسم البنك/الجهة (عربي)', type:'text', default: e=> presetBankAr || e?.bankAr},
+      {key:'destinationBankEn', label:'Bank/Recipient Name (EN)', type:'text', default: e=> presetBankEn || e?.bankEn},
+    ],
+    render(emp, m){
+      const co = companyOf(emp);
+      const dateStr = m.date?fmtDate(m.date):todayStr();
+      return `
+        ${sctHeader(co)}
+        ${sctTitle('تعريف وتثبيت الراتب','Definition and fixation of salary')}
+        ${sctDateRow(dateStr)}
+        ${sctTable(
+          sctRow2(`${co.nameEn} certifies<br>Commercial Registration No.: ${co.cr}`, `تشهد ${co.nameAr}<br>سجل تجاري رقم: ${co.cr}`) +
+          sctRow2(`That Mr: ${esc(emp.nameEn||emp.nameAr)}`, `بأن السيد: ${esc(emp.nameAr)}`, true) +
+          sctRow4('Nationality:', esc(emp.nationalityEn), esc(emp.nationalityAr), 'الجنسية:') +
+          sctRow4('Identification Number:', esc(emp.idNumber), esc(emp.idNumber), 'رقم الهوية:') +
+          sctRow4('Job title:', esc(emp.jobTitleEn||emp.jobTitleAr), esc(emp.jobTitleAr), 'المسمى الوظيفي:') +
+          sctRow4('Joining Date:', fmtDate(emp.joinDate), fmtDate(emp.joinDate), 'تاريخ الالتحاق:') +
+          sctRow4('Bank Name:', esc(emp.bankEn||emp.bankAr), esc(emp.bankAr), 'اسم البنك:') +
+          sctRow4('IBAN Number:', esc(emp.iban), esc(emp.iban), 'رقم الايبان:') +
+          sctRow2('He works for us and receives a monthly salary', 'يعمل لدينا و يتقاضى راتب شهري', true) +
+          sctRow4('basic salary', money(emp.basic), money(emp.basic), 'الراتب الأساسي') +
+          sctRow4('Housing allowance', money(emp.housing), money(emp.housing), 'بدل السكن') +
+          sctRow4('Transportation allowance', money(emp.transport), money(emp.transport), 'بدل النقل') +
+          sctRow4('Other allowances', money(emp.living), money(emp.living), 'بدلات أخرى') +
+          sctRow4('total salary', `<b>${money(emp.total)}</b>`, `<b>${money(emp.total)}</b>`, 'الراتب الإجمالي', true) +
+          sctRow2(
+            `The Company undertakes to transfer the employee's salary and entitlements on their scheduled monthly dates until the termination of their employment relationship with us or until receipt of written notification from you regarding the settlement of their obligations. This certificate has been issued at the employee's request for submission to <u>${esc(m.destinationBankEn)}</u>.`,
+            `وتلتزم الشركة بتحويل رواتب ومستحقات الموظف في مواعيدها الشهرية وحتى نهاية علاقته الوظيفية معنا أو استلام إشعار خطي بانتهاء الالتزامات عليه من قبلكم، وحُررت هذه الشهادة بناءً على طلب الموظف لتقديمها إلى <u>${esc(m.destinationBankAr)}</u>.`,
+            true
+          )
+        )}
+        ${sctFooterName(co.nameAr)}
+        ${docFooter(emp)}`;
+    }
+  };
+}
+const FORM_TAAREEF_TATHBEET_RATIB = makeTathbeetRatibForm('taareef-tathbeet-ratib', 'تعريف وتثبيت الراتب (بنك آخر)', null, null);
+const FORM_TAAREEF_TATHBEET_RIYAD = makeTathbeetRatibForm('taareef-tathbeet-riyad', 'تعريف وتثبيت الراتب - بنك الرياض', 'بنك الرياض', 'Riyad Bank');
+const FORM_TAAREEF_TATHBEET_ALINMA = makeTathbeetRatibForm('taareef-tathbeet-alinma', 'تعريف وتثبيت الراتب - مصرف الإنماء', 'مصرف الإنماء', 'Alinma Bank');
 
 const FORM_TAAREEF_MUWAZAF_EOS = {
   id:'taareef-muwazaf-eos', cat:'certificates', titleAr:'خطاب تعريف بموظف (مع مكافأة نهاية الخدمة)',
@@ -1301,7 +1341,7 @@ const FORM_INVESTIGATION_RECORD = {
 const FORMS = [
   // الشهادات والتعريفات
   FORM_TAAREEF_AR, FORM_TAAREEF_EN, FORM_SHAHADAT_KHIBRA, FORM_MAALOOMAT_MUWAZAF, FORM_MALAF_MUWAZAF,
-  FORM_TAAREEF_SAFARA, FORM_ADAM_MUMANAA, FORM_TAAREEF_RATIB, FORM_TAAREEF_TATHBEET_RATIB, FORM_TAAREEF_MUWAZAF_EOS,
+  FORM_TAAREEF_SAFARA, FORM_TAAREEF_RATIB_SAFARAT, FORM_ADAM_MUMANAA, FORM_TAAREEF_RATIB, FORM_TAAREEF_TATHBEET_RIYAD, FORM_TAAREEF_TATHBEET_ALINMA, FORM_TAAREEF_TATHBEET_RATIB, FORM_TAAREEF_MUWAZAF_EOS,
   // عقود العمل
   FORM_AQD_MAWAD, FORM_AQD_NAQLIYAT, FORM_AQD_SIYANA, FORM_AQD_MAWAD_AMOLA, FORM_AQD_NAQLIYAT_AMOLA, FORM_AQD_TASHEERA,
   // إنهاء الخدمة وإخلاء الطرف
