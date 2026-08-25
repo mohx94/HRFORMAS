@@ -133,6 +133,12 @@ body{
 }
 .btn-email:hover{background:#0f1922;}
 .btn-email:disabled{background:#b9c0c7;cursor:not-allowed;}
+.btn-excel{
+  background:#3b6e4f;color:#fff;border:none;padding:10px 18px;border-radius:8px;
+  cursor:pointer;font-family:inherit;font-weight:700;font-size:14px;white-space:nowrap;
+}
+.btn-excel:hover{background:#2c5439;}
+.btn-excel:disabled{background:#b9ccb9;cursor:not-allowed;}
 .email-note{
   background:var(--sand-light);border:1px solid #e0cfa8;border-radius:8px;padding:10px 14px;
   font-size:13px;color:var(--ink);margin-bottom:14px;
@@ -217,6 +223,7 @@ table.ct-table{width:100%;border-collapse:collapse;margin:0 0 4px;page-break-ins
 .doc-footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);text-align:center;font-size:11.5px;color:#999;}
 
 .tag-empty{color:#b18a3a;font-style:italic;}
+.sheet-placeholder{color:#b18a3a;font-style:italic;}
 
 /* ---------- Login screen ---------- */
 .login-screen{
