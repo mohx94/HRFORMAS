@@ -116,27 +116,64 @@ const FORM_MALAF_MUWAZAF = {
   }
 };
 
+/* أدوات قالب شهادات الراتب المعتمد */
+function sctHeader(co){
+  return `<div class="sct-header"><img src="assets/logo.png" alt=""><div class="name">${co.nameAr}</div></div>`;
+}
+function sctTitle(ar, en){
+  return `<div class="sct-title-band"><div class="ar">${ar}</div><div class="en">${en}</div></div>`;
+}
+function sctDateRow(dateStr){
+  return `<div class="sct-date-row"><span>date: ${dateStr}</span><span>التاريخ : ${dateStr}</span></div>`;
+}
+function sctRow2(enHtml, arHtml, shaded){
+  return `<tr class="${shaded?'shaded':''}"><td class="ltr b" colspan="2">${enHtml}</td><td class="rtl b" colspan="2">${arHtml}</td></tr>`;
+}
+function sctRow4(enLabel, enVal, arVal, arLabel, shaded){
+  return `<tr class="${shaded?'shaded':''}">
+    <td class="ltr b">${enLabel}</td>
+    <td class="ltr ctr">${enVal}</td>
+    <td class="rtl ctr">${arVal}</td>
+    <td class="rtl b">${arLabel}</td>
+  </tr>`;
+}
+function sctTable(rowsHtml){
+  return `<div class="avoid-break"><table class="sct-table" dir="ltr"><tbody>${rowsHtml}</tbody></table></div>`;
+}
+function sctFooterName(html){
+  return `<div class="sct-footer-name">${html}</div>`;
+}
+
 const FORM_TAAREEF_SAFARA = {
   id:'taareef-safara', cat:'certificates', titleAr:'وثيقة تعريف بموظف (لسفارة)',
   manualFields:[
     {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
-    {key:'destination', label:'الجهة المقدَّم إليها (مثال: السفارة الفرنسية)', type:'text', default:'من يهمه الأمر'},
+    {key:'destinationAr', label:'اسم السفارة (عربي)', type:'text', default:'السفارة'},
+    {key:'destinationEn', label:'Embassy Name (EN)', type:'text', default:'the Embassy'},
     {key:'salaryText', label:'نص الراتب الشهري (مثال: 25,000 ريال)', type:'text', default: e=> e ? (money(e.total)+' ريال') : ''},
   ],
   render(emp, m){
     const co = companyOf(emp);
+    const dateStr = m.date?fmtDate(m.date):todayStr();
     return `
-      ${docHeader(emp, 'وثيقة تعريف بموظف', 'Staff Identification Document')}
-      <div class="row">${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}</div>
-      <div class="bi-row">
-        <div class="ar">تشهد ${co.nameAr} — سجل تجاري رقم: ${co.cr} — بأن السيد: <b>${esc(emp.nameAr)}</b> (${esc(emp.nameEn||'')}) — الجنسية: ${esc(emp.nationalityAr)} — رقم الجواز: ${esc(emp.passportNumber)} — رقم الهوية: ${esc(emp.idNumber)} — المسمى الوظيفي: ${esc(emp.jobTitleAr)} — تاريخ الالتحاق: ${fmtDate(emp.joinDate)}.</div>
-        <div class="en">${co.nameEn} certifies, CR No.: ${co.cr}, that Mr. <b>${esc(emp.nameEn||emp.nameAr)}</b> — Nationality: ${esc(emp.nationalityEn)} — Passport No.: ${esc(emp.passportNumber)} — ID No.: ${esc(emp.idNumber)} — Job Title: ${esc(emp.jobTitleEn||emp.jobTitleAr)} — Joining Date: ${fmtDate(emp.joinDate)}.</div>
-      </div>
-      <div class="bi-row">
-        <div class="ar">يعمل لدينا بموجب عقد قابل للتجديد، ويتقاضى راتباً شهرياً: <b>${esc(m.salaryText)}</b>. حُررت هذه الشهادة بناءً على طلب الموظف لتقديمها إلى: <b>${esc(m.destination)}</b>، وذلك دون أن تكون على الشركة أدنى مسؤولية.</div>
-        <div class="en">He works for us under a renewable contract and receives a monthly salary of: <b>${esc(m.salaryText)}</b>. This certificate was issued at the employee's request to be submitted to: <b>${esc(m.destination)}</b>, without the company being under any responsibility.</div>
-      </div>
-      <div class="sign-grid two" style="margin-top:60px">${signBox('إدارة الموارد البشرية')}${signBox('ختم الشركة')}</div>
+      ${sctHeader(co)}
+      ${sctTitle('وثيقة تعريف بموظف','Staff Identification Document')}
+      ${sctDateRow(dateStr)}
+      ${sctTable(
+        sctRow2(`${co.nameEn} certifies<br>Commercial Registration No.: ${co.cr}`, `تشهد ${co.nameAr}<br>سجل تجاري رقم: ${co.cr}`) +
+        sctRow2(`That Mr: ${esc(emp.nameEn||emp.nameAr)}`, `بأن السيد: ${esc(emp.nameAr)}`, true) +
+        sctRow4('Nationality:', esc(emp.nationalityEn), esc(emp.nationalityAr), 'الجنسية') +
+        sctRow4('passport number:', esc(emp.passportNumber), esc(emp.passportNumber), 'رقم الجواز') +
+        sctRow4('Identification Number:', esc(emp.idNumber), esc(emp.idNumber), 'رقم الهوية:') +
+        sctRow4('Job title:', esc(emp.jobTitleEn||emp.jobTitleAr), esc(emp.jobTitleAr), 'المسمى الوظيفي:') +
+        sctRow4('Joining Date:', fmtDate(emp.joinDate), fmtDate(emp.joinDate), 'تاريخ الالتحاق:') +
+        sctRow2('He works for us under a renewable contract and receives a monthly salary: <b>' + esc(m.salaryText) + '</b>', 'يعمل لدينا بموجب عقد قابل للتجديد ويتقاضى راتباً شهرياً: <b>' + esc(m.salaryText) + '</b>', true) +
+        sctRow2(
+          `This certificate was issued at the employee's request to be submitted to <b>${esc(m.destinationEn)}</b>, without the company being under any responsibility whatsoever.`,
+          `حُررت هذه الشهادة بناءً على طلب الموظف لتقديمها إلى <b>${esc(m.destinationAr)}</b>، وذلك دون أن تكون على الشركة أدنى مسؤولية.`
+        )
+      )}
+      ${sctFooterName(co.nameAr)}
       ${docFooter(emp)}`;
   }
 };
@@ -145,22 +182,33 @@ const FORM_ADAM_MUMANAA = {
   id:'adam-mumanaa', cat:'certificates', titleAr:'عدم ممانعة من السفر',
   manualFields:[
     {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
-    {key:'destinationCountry', label:'الدولة المقصودة', type:'text'},
+    {key:'destinationCountryAr', label:'الدولة المقصودة (عربي)', type:'text'},
+    {key:'destinationCountryEn', label:'Destination Country (EN)', type:'text'},
   ],
   render(emp, m){
     const co = companyOf(emp);
+    const dateStr = m.date?fmtDate(m.date):todayStr();
     return `
-      ${docHeader(emp, 'عدم ممانعة من السفر', 'No Objection to Travel')}
-      <div class="row">${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}</div>
-      <div class="bi-row">
-        <div class="ar">نحن ${co.nameAr} — سجل تجاري رقم: ${co.cr} — لا مانع لدينا من سفر السيد: <b>${esc(emp.nameAr)}</b> (${esc(emp.nameEn||'')}) — الجنسية: ${esc(emp.nationalityAr)} — رقم الجواز: ${esc(emp.passportNumber)} — رقم الهوية: ${esc(emp.idNumber)} — المسمى الوظيفي: ${esc(emp.jobTitleAr)} — تاريخ الالتحاق: ${fmtDate(emp.joinDate)}.</div>
-        <div class="en">We, ${co.nameEn}, CR No.: ${co.cr}, have no objection to the travel of Mr. <b>${esc(emp.nameEn||emp.nameAr)}</b> — Nationality: ${esc(emp.nationalityEn)} — Passport No.: ${esc(emp.passportNumber)} — ID No.: ${esc(emp.idNumber)} — Job Title: ${esc(emp.jobTitleEn||emp.jobTitleAr)} — Joining Date: ${fmtDate(emp.joinDate)}.</div>
-      </div>
-      <div class="bi-row">
-        <div class="ar">إلى: <b>${esc(m.destinationCountry)}</b>، وتتحمل الشركة مسؤولية عودته إلى المملكة العربية السعودية، وذلك دون أن تكون على الشركة أدنى مسؤولية.</div>
-        <div class="en">To: <b>${esc(m.destinationCountry)}</b>. The company assumes responsibility for his return to the Kingdom of Saudi Arabia, without the company being under any further responsibility.</div>
-      </div>
-      <div class="sign-grid two" style="margin-top:60px">${signBox('إدارة الموارد البشرية')}${signBox('ختم الشركة')}</div>
+      ${sctHeader(co)}
+      ${sctTitle('تعريف بالراتب وتعهد','Definition of salary and pledge')}
+      ${sctDateRow(dateStr)}
+      ${sctTable(
+        sctRow2(`${co.nameEn} certifies<br>Commercial Registration No.: ${co.cr}`, `نحن ${co.nameAr}<br>سجل تجاري رقم: ${co.cr}`) +
+        sctRow2('We have no objection to the travel of Mr:', 'لا مانع لدينا من سفر السيد:', true) +
+        sctRow2(`<b>${esc(emp.nameEn||emp.nameAr)}</b>`, `<b>${esc(emp.nameAr)}</b>`) +
+        sctRow4('Nationality:', esc(emp.nationalityEn), esc(emp.nationalityAr), 'الجنسية') +
+        sctRow4('passport number:', esc(emp.passportNumber), esc(emp.passportNumber), 'رقم الجواز') +
+        sctRow4('Identification Number:', esc(emp.idNumber), esc(emp.idNumber), 'رقم الهوية:') +
+        sctRow4('Job title:', esc(emp.jobTitleEn||emp.jobTitleAr), esc(emp.jobTitleAr), 'المسمى الوظيفي:') +
+        sctRow4('Joining Date:', fmtDate(emp.joinDate), fmtDate(emp.joinDate), 'تاريخ الالتحاق:') +
+        sctRow4('Monthly salary:', money(emp.total)+' SAR', money(emp.total)+' ر.س.', 'الراتب الشهري:') +
+        sctRow2(
+          `To ${esc(m.destinationCountryEn)}.<br>The company assumes responsibility for his return to the Kingdom of Saudi Arabia.`,
+          `إلى ${esc(m.destinationCountryAr)}<br>وتتحمل الشركة مسؤولية عودته للمملكة العربية السعودية`,
+          true
+        )
+      )}
+      ${sctFooterName(`${co.nameAr}<br>${co.nameEn}`)}
       ${docFooter(emp)}`;
   }
 };
@@ -169,37 +217,36 @@ const FORM_TAAREEF_RATIB = {
   id:'taareef-ratib', cat:'certificates', titleAr:'تعريف بالراتب',
   manualFields:[
     {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
-    {key:'destination', label:'الجهة المقدَّم إليها', type:'text', default:'من يهمه الأمر'},
-    {key:'commissionNote', label:'ملاحظة عمولة إضافية (اختياري)', type:'text'},
+    {key:'destinationAr', label:'الجهة المقدَّم إليها (عربي)', type:'text', default:'من يهمه الأمر'},
+    {key:'destinationEn', label:'Recipient (EN)', type:'text', default:'whomever it may concern'},
   ],
   render(emp, m){
     const co = companyOf(emp);
+    const dateStr = m.date?fmtDate(m.date):todayStr();
     return `
-      ${docHeader(emp, 'تعريف بالراتب', 'Definition of Salary')}
-      <div class="row">${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}</div>
-      <div class="bi-row">
-        <div class="ar">تشهد ${co.nameAr} — سجل تجاري رقم: ${co.cr} — بأن السيد: <b>${esc(emp.nameAr)}</b> (${esc(emp.nameEn||'')}) — الجنسية: ${esc(emp.nationalityAr)} — رقم الهوية: ${esc(emp.idNumber)} — المسمى الوظيفي: ${esc(emp.jobTitleAr)} — تاريخ الالتحاق: ${fmtDate(emp.joinDate)}.</div>
-        <div class="en">${co.nameEn} certifies, CR No.: ${co.cr}, that Mr. <b>${esc(emp.nameEn||emp.nameAr)}</b> — Nationality: ${esc(emp.nationalityEn)} — ID No.: ${esc(emp.idNumber)} — Job Title: ${esc(emp.jobTitleEn||emp.jobTitleAr)} — Joining Date: ${fmtDate(emp.joinDate)}.</div>
-      </div>
-      <div class="bi-row">
-        <div class="ar">يعمل لدينا وتحت كفالتنا، ويتقاضى راتباً شهرياً وفق التفصيل التالي${m.commissionNote?('، '+esc(m.commissionNote)):''}، وذلك دون أن تكون على الشركة أدنى مسؤولية.</div>
-        <div class="en">He works for us and under our sponsorship, and receives a monthly salary as detailed below${m.commissionNote?(', '+esc(m.commissionNote)):''}, without the company being under any responsibility.</div>
-      </div>
-      <table class="doc-table">
-        <thead><tr><th>البند</th><th>المبلغ (ر.س)</th></tr></thead>
-        <tbody>
-          <tr><td>الراتب الأساسي</td><td>${money(emp.basic)}</td></tr>
-          <tr><td>بدل السكن</td><td>${money(emp.housing)}</td></tr>
-          <tr><td>بدل النقل</td><td>${money(emp.transport)}</td></tr>
-          <tr><td>بدلات أخرى</td><td>${money(emp.living)}</td></tr>
-          <tr><td><b>الراتب الإجمالي</b></td><td><b>${money(emp.total)}</b></td></tr>
-        </tbody>
-      </table>
-      <div class="bi-row">
-        <div class="ar">حُررت هذه الشهادة للموظف بناءً على طلبه لتقديمها إلى: <b>${esc(m.destination)}</b>.</div>
-        <div class="en">This certificate has been issued to the employee at his request for submission to: <b>${esc(m.destination)}</b>.</div>
-      </div>
-      <div class="sign-grid two" style="margin-top:60px">${signBox('إدارة الموارد البشرية')}${signBox('ختم الشركة')}</div>
+      ${sctHeader(co)}
+      ${sctTitle('تعريف بالراتب','Definition of salary')}
+      ${sctDateRow(dateStr)}
+      ${sctTable(
+        sctRow2(`${co.nameEn} certifies<br>Commercial Registration No.: ${co.cr}`, `تشهد ${co.nameAr}<br>سجل تجاري رقم: ${co.cr}`) +
+        sctRow2(`That Mr: ${esc(emp.nameEn||emp.nameAr)}`, `بأن السيد: ${esc(emp.nameAr)}`, true) +
+        sctRow4('Nationality:', esc(emp.nationalityEn), esc(emp.nationalityAr), 'الجنسية') +
+        sctRow4('Identification Number:', esc(emp.idNumber), esc(emp.idNumber), 'رقم الهوية:') +
+        sctRow4('Job title:', esc(emp.jobTitleEn||emp.jobTitleAr), esc(emp.jobTitleAr), 'المسمى الوظيفي:') +
+        sctRow4('Joining Date:', fmtDate(emp.joinDate), fmtDate(emp.joinDate), 'تاريخ الالتحاق:') +
+        sctRow2('He works for us and receives a monthly salary', 'يعمل لدينا و يتقاضى راتب شهري', true) +
+        sctRow4('basic salary', money(emp.basic), money(emp.basic), 'الراتب الأساسي') +
+        sctRow4('Housing allowance', money(emp.housing), money(emp.housing), 'بدل السكن') +
+        sctRow4('Transportation allowance', money(emp.transport), money(emp.transport), 'بدل النقل') +
+        sctRow4('Other allowances', money(emp.living), money(emp.living), 'بدلات أخرى') +
+        sctRow4('total salary', `<b>${money(emp.total)}</b>`, `<b>${money(emp.total)}</b>`, 'الراتب الإجمالي', true) +
+        sctRow2(
+          `This certificate was issued to the employee at his request to present it to <b>${esc(m.destinationEn)}</b>, without the company bearing any responsibility whatsoever.`,
+          `حُررت هذه الشهادة للموظف بناءً على طلبه لتقديمها إلى <b>${esc(m.destinationAr)}</b>، وذلك دون أن تكون على الشركة أدنى مسؤولية.`,
+          true
+        )
+      )}
+      ${sctFooterName(`${co.nameAr}<br>إدارة الموارد البشرية`)}
       ${docFooter(emp)}`;
   }
 };
@@ -208,33 +255,38 @@ const FORM_TAAREEF_TATHBEET_RATIB = {
   id:'taareef-tathbeet-ratib', cat:'certificates', titleAr:'تعريف وتثبيت الراتب',
   manualFields:[
     {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
-    {key:'destinationBank', label:'اسم الجهة/البنك المقدَّم إليها', type:'text', default: e=>e?.bankAr},
+    {key:'destinationBankAr', label:'اسم البنك/الجهة (عربي)', type:'text', default: e=>e?.bankAr},
+    {key:'destinationBankEn', label:'Bank/Recipient Name (EN)', type:'text', default: e=>e?.bankEn},
   ],
   render(emp, m){
     const co = companyOf(emp);
+    const dateStr = m.date?fmtDate(m.date):todayStr();
     return `
-      ${docHeader(emp, 'تعريف وتثبيت الراتب', 'Definition and Fixation of Salary')}
-      <div class="row">${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}</div>
-      <div class="bi-row">
-        <div class="ar">تشهد ${co.nameAr} — سجل تجاري رقم: ${co.cr} — بأن السيد: <b>${esc(emp.nameAr)}</b> (${esc(emp.nameEn||'')}) — الجنسية: ${esc(emp.nationalityAr)} — رقم الهوية: ${esc(emp.idNumber)} — المسمى الوظيفي: ${esc(emp.jobTitleAr)} — تاريخ الالتحاق: ${fmtDate(emp.joinDate)}.</div>
-        <div class="en">${co.nameEn} certifies, CR No.: ${co.cr}, that Mr. <b>${esc(emp.nameEn||emp.nameAr)}</b> — Nationality: ${esc(emp.nationalityEn)} — ID No.: ${esc(emp.idNumber)} — Job Title: ${esc(emp.jobTitleEn||emp.jobTitleAr)} — Joining Date: ${fmtDate(emp.joinDate)}.</div>
-      </div>
-      <div class="row">${kv('اسم البنك', emp.bankAr)}${kv('رقم الآيبان', emp.iban)}</div>
-      <table class="doc-table">
-        <thead><tr><th>البند</th><th>المبلغ (ر.س)</th></tr></thead>
-        <tbody>
-          <tr><td>الراتب الأساسي</td><td>${money(emp.basic)}</td></tr>
-          <tr><td>بدل السكن</td><td>${money(emp.housing)}</td></tr>
-          <tr><td>بدل النقل</td><td>${money(emp.transport)}</td></tr>
-          <tr><td>بدلات أخرى</td><td>${money(emp.living)}</td></tr>
-          <tr><td><b>الراتب الإجمالي</b></td><td><b>${money(emp.total)}</b></td></tr>
-        </tbody>
-      </table>
-      <div class="bi-row">
-        <div class="ar">وتلتزم الشركة بتحويل رواتب ومستحقات الموظف في مواعيدها الشهرية وحتى نهاية علاقته الوظيفية معنا، أو استلام إشعار خطي بانتهاء الالتزامات من قبلكم. حُررت هذه الشهادة بناءً على طلب الموظف لتقديمها إلى: <b>${esc(m.destinationBank)}</b>.</div>
-        <div class="en">The company undertakes to transfer the employee's salary and entitlements on their scheduled monthly dates until the end of his employment relationship with us, or upon receiving written notice from you regarding settlement of obligations. This certificate was issued at the employee's request for submission to: <b>${esc(m.destinationBank)}</b>.</div>
-      </div>
-      <div class="sign-grid two" style="margin-top:60px">${signBox('إدارة الموارد البشرية')}${signBox('ختم الشركة')}</div>
+      ${sctHeader(co)}
+      ${sctTitle('تعريف وتثبيت الراتب','Definition and fixation of salary')}
+      ${sctDateRow(dateStr)}
+      ${sctTable(
+        sctRow2(`${co.nameEn} certifies<br>Commercial Registration No.: ${co.cr}`, `تشهد ${co.nameAr}<br>سجل تجاري رقم: ${co.cr}`) +
+        sctRow2(`That Mr: ${esc(emp.nameEn||emp.nameAr)}`, `بأن السيد: ${esc(emp.nameAr)}`, true) +
+        sctRow4('Nationality:', esc(emp.nationalityEn), esc(emp.nationalityAr), 'الجنسية:') +
+        sctRow4('Identification Number:', esc(emp.idNumber), esc(emp.idNumber), 'رقم الهوية:') +
+        sctRow4('Job title:', esc(emp.jobTitleEn||emp.jobTitleAr), esc(emp.jobTitleAr), 'المسمى الوظيفي:') +
+        sctRow4('Joining Date:', fmtDate(emp.joinDate), fmtDate(emp.joinDate), 'تاريخ الالتحاق:') +
+        sctRow4('Bank Name:', esc(emp.bankEn||emp.bankAr), esc(emp.bankAr), 'اسم البنك:') +
+        sctRow4('IBAN Number:', esc(emp.iban), esc(emp.iban), 'رقم الايبان:') +
+        sctRow2('He works for us and receives a monthly salary', 'يعمل لدينا و يتقاضى راتب شهري', true) +
+        sctRow4('basic salary', money(emp.basic), money(emp.basic), 'الراتب الأساسي') +
+        sctRow4('Housing allowance', money(emp.housing), money(emp.housing), 'بدل السكن') +
+        sctRow4('Transportation allowance', money(emp.transport), money(emp.transport), 'بدل النقل') +
+        sctRow4('Other allowances', money(emp.living), money(emp.living), 'بدلات أخرى') +
+        sctRow4('total salary', `<b>${money(emp.total)}</b>`, `<b>${money(emp.total)}</b>`, 'الراتب الإجمالي', true) +
+        sctRow2(
+          `The Company undertakes to transfer the employee's salary and entitlements on their scheduled monthly dates until the termination of their employment relationship with us or until receipt of written notification from you regarding the settlement of their obligations. This certificate has been issued at the employee's request for submission to <u>${esc(m.destinationBankEn)}</u>.`,
+          `وتلتزم الشركة بتحويل رواتب ومستحقات الموظف في مواعيدها الشهرية وحتى نهاية علاقته الوظيفية معنا أو استلام إشعار خطي بانتهاء الالتزامات عليه من قبلكم، وحُررت هذه الشهادة بناءً على طلب الموظف لتقديمها إلى <u>${esc(m.destinationBankAr)}</u>.`,
+          true
+        )
+      )}
+      ${sctFooterName(co.nameAr)}
       ${docFooter(emp)}`;
   }
 };

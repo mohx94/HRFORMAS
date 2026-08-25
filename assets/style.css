@@ -226,6 +226,23 @@ table.ct-table{width:100%;border-collapse:collapse;margin:0 0 4px;page-break-ins
 .tag-empty{color:#b18a3a;font-style:italic;}
 .sheet-placeholder{color:#b18a3a;font-style:italic;}
 
+/* قالب شهادات الراتب المعتمد (تعريف بالراتب / تثبيت / عدم ممانعة) */
+.sct-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.sct-header img{height:52px;}
+.sct-header .name{font-size:19px;font-weight:800;text-align:right;color:var(--ink);}
+.sct-title-band{background:#eef0ef;text-align:center;padding:12px;margin-bottom:14px;border-radius:2px;}
+.sct-title-band .ar{font-weight:800;font-size:16.5px;color:var(--ink);}
+.sct-title-band .en{font-weight:700;font-size:13px;color:#444;margin-top:3px;}
+.sct-date-row{display:flex;justify-content:space-between;font-weight:800;font-size:13px;margin-bottom:8px;padding:0 2px;}
+table.sct-table{width:100%;border-collapse:collapse;margin-bottom:14px;}
+.sct-table td{border:1px solid #333;padding:8px 10px;font-size:12.5px;vertical-align:middle;}
+.sct-table td.ltr{direction:ltr;text-align:left;font-family:var(--font-en);}
+.sct-table td.rtl{direction:rtl;text-align:right;font-family:var(--font-ar);}
+.sct-table td.ctr{text-align:center;}
+.sct-table td.b{font-weight:800;}
+.sct-table tr.shaded td{background:#ececec;}
+.sct-footer-name{text-align:center;font-weight:800;font-size:13.5px;margin-top:16px;line-height:1.6;}
+
 /* ---------- Login screen ---------- */
 .login-screen{
   min-height:100vh;display:flex;align-items:center;justify-content:center;
