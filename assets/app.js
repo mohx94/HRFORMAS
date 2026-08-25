@@ -53,6 +53,20 @@ function money(v){
   const n = num(v);
   return n.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:2});
 }
+function dateDiffYMD(startV, endV){
+  const start = excelDateToJS(startV);
+  const end = excelDateToJS(endV);
+  if(!start || !end || end < start) return {y:0,m:0,d:0};
+  let y = end.getFullYear() - start.getFullYear();
+  let m = end.getMonth() - start.getMonth();
+  let d = end.getDate() - start.getDate();
+  if(d < 0){
+    m--;
+    d += new Date(end.getFullYear(), end.getMonth(), 0).getDate();
+  }
+  if(m < 0){ y--; m += 12; }
+  return {y,m,d};
+}
 function yearsToYMD(decYears){
   const y = Math.floor(decYears);
   const remM = (decYears - y) * 12;
@@ -206,11 +220,14 @@ function openForm(form){
   currentEmployee = null;
   manualValues = {};
   const main = document.getElementById('main');
+  const standalone = !!form.standalone;
+
   main.innerHTML = `
     <div class="form-toolbar">
       <h2>${form.titleAr}</h2>
-      <button class="btn-print" id="printBtn" disabled>طباعة A4</button>
+      <button class="btn-print" id="printBtn" ${standalone?'':'disabled'}>طباعة A4</button>
     </div>
+    ${standalone ? `<div class="hint" style="margin-bottom:14px">هذا النموذج يُعبّى يدوياً بالكامل (لا يعتمد على بيانات موظف مسجّل في الملف).</div>` : `
     <div class="picker-bar">
       <div class="field">
         <label>الرقم الوظيفي أو اسم الموظف</label>
@@ -218,32 +235,34 @@ function openForm(form){
         <datalist id="empList"></datalist>
       </div>
       <div id="empSummary"></div>
-    </div>
+    </div>`}
     <div class="manual-fields" id="manualFields"></div>
-    <div class="sheet-wrap"><div class="sheet" id="sheet"><div class="tag-empty" style="padding:60px;text-align:center;display:block;">حدد موظفاً لعرض النموذج</div></div></div>
+    <div class="sheet-wrap"><div class="sheet" id="sheet">${standalone?'':'<div class="tag-empty" style="padding:60px;text-align:center;display:block;">حدد موظفاً لعرض النموذج</div>'}</div></div>
   `;
-  // datalist
-  const dl = document.getElementById('empList');
-  dl.innerHTML = EMPLOYEES.map(e=>`<option value="${e.jobNo} - ${esc(e.nameAr)}">`).join('');
 
-  document.getElementById('empSearch').addEventListener('input', (e)=>{
-    const v = e.target.value.trim();
-    const jobNo = v.split(' - ')[0].trim();
-    const emp = EMP_BY_NO[jobNo];
-    if(emp){
-      if(!currentEmployee || currentEmployee.jobNo !== emp.jobNo){ manualValues = {}; }
-      currentEmployee = emp;
-      document.getElementById('empSummary').innerHTML =
-        `<div class="emp-summary"><b>${esc(emp.nameAr)}</b> — ${esc(emp.jobTitleAr)} — ${esc(emp.deptAr||emp.workLocationAr)}</div>`;
-      renderManualFields();
-      renderSheet();
-      document.getElementById('printBtn').disabled = false;
-    }
-  });
+  if(!standalone){
+    const dl = document.getElementById('empList');
+    dl.innerHTML = EMPLOYEES.map(e=>`<option value="${e.jobNo} - ${esc(e.nameAr)}">`).join('');
+
+    document.getElementById('empSearch').addEventListener('input', (e)=>{
+      const v = e.target.value.trim();
+      const jobNo = v.split(' - ')[0].trim();
+      const emp = EMP_BY_NO[jobNo];
+      if(emp){
+        if(!currentEmployee || currentEmployee.jobNo !== emp.jobNo){ manualValues = {}; renderManualFields(); }
+        currentEmployee = emp;
+        document.getElementById('empSummary').innerHTML =
+          `<div class="emp-summary"><b>${esc(emp.nameAr)}</b> — ${esc(emp.jobTitleAr)} — ${esc(emp.deptAr||emp.workLocationAr)}</div>`;
+        renderSheet();
+        document.getElementById('printBtn').disabled = false;
+      }
+    });
+  }
 
   document.getElementById('printBtn').addEventListener('click', ()=> window.print());
 
   renderManualFields();
+  if(standalone){ renderSheet(); }
 }
 
 function renderManualFields(){
@@ -257,6 +276,10 @@ function renderManualFields(){
     if(f.type==='textarea'){
       return `<div class="f" style="grid-column:1/-1"><label>${f.label}</label><textarea data-key="${f.key}">${esc(val)}</textarea></div>`;
     }
+    if(f.type==='select'){
+      const opts = (f.options||[]).map(o=>`<option value="${esc(o)}" ${o===val?'selected':''}>${esc(o)}</option>`).join('');
+      return `<div class="f"><label>${f.label}</label><select data-key="${f.key}">${opts}</select></div>`;
+    }
     return `<div class="f"><label>${f.label}</label><input type="${f.type||'text'}" data-key="${f.key}" value="${esc(val)}"></div>`;
   }).join('');
   wrap.querySelectorAll('[data-key]').forEach(inp=>{
@@ -269,7 +292,7 @@ function renderManualFields(){
 
 function renderSheet(){
   const sheetEl = document.getElementById('sheet');
-  if(!currentEmployee){
+  if(!currentForm.standalone && !currentEmployee){
     sheetEl.innerHTML = `<div class="tag-empty" style="padding:60px;text-align:center;display:block;">حدد موظفاً لعرض النموذج</div>`;
     return;
   }

@@ -61,10 +61,6 @@ const FORM_SHAHADAT_KHIBRA = {
   manualFields:[
     {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
     {key:'toDate', label:'تاريخ نهاية العمل', type:'date', default: e=>e?.releaseDate},
-    {key:'eos', label:'مكافأة نهاية الخدمة (ر.س)', type:'number'},
-    {key:'vacation', label:'بدل الإجازة (ر.س)', type:'number'},
-    {key:'salary', label:'راتب مستحق (ر.س)', type:'number'},
-    {key:'driverBonus', label:'مكافأة السائق (ر.س) - إن وجدت', type:'number'},
   ],
   render(emp, m){
     return `
@@ -74,16 +70,6 @@ const FORM_SHAHADAT_KHIBRA = {
         <div class="ar">تشهد ${companyOf(emp).nameAr} أن السيد: <b>${esc(emp.nameAr)}</b> كان يعمل لدينا خلال الفترة من ${fmtDate(emp.joinDate)} حتى ${m.toDate?fmtDate(m.toDate):'تاريخ كتابة هذا الخطاب'}، وكان يعمل لدينا بوظيفة: <b>${esc(emp.jobTitleAr)}</b> بقسم ${esc(emp.deptAr)}.</div>
         <div class="en">${companyOf(emp).nameEn} certifies that Mr. <b>${esc(emp.nameEn||emp.nameAr)}</b> worked for us during the period from ${fmtDate(emp.joinDate)} until ${m.toDate?fmtDate(m.toDate):'the date of writing this letter'} as <b>${esc(emp.jobTitleEn||emp.jobTitleAr)}</b>.</div>
       </div>
-      <div class="section-title">وتم منحه الآتي / He was granted the following</div>
-      <table class="doc-table">
-        <thead><tr><th>البند</th><th>المبلغ (ر.س)</th></tr></thead>
-        <tbody>
-          <tr><td>مكافأة نهاية خدمة</td><td>${m.eos?money(m.eos):'—'}</td></tr>
-          <tr><td>بدل إجازة</td><td>${m.vacation?money(m.vacation):'—'}</td></tr>
-          <tr><td>راتب مستحق</td><td>${m.salary?money(m.salary):'—'}</td></tr>
-          ${m.driverBonus?`<tr><td>مكافأة سائق</td><td>${money(m.driverBonus)}</td></tr>`:''}
-        </tbody>
-      </table>
       <p class="para">وقد تم منحه هذه الشهادة بناء على طلبه دون تحمل ${companyOf(emp).nameAr} أدنى مسؤولية تجاه حقوق الغير.</p>
       <div class="sign-grid two" style="margin-top:60px">${signBox('إدارة الموارد البشرية')}${signBox('ختم الشركة')}</div>
       ${docFooter(emp)}`;
@@ -193,6 +179,7 @@ function renderEmploymentContract(emp, m, opts){
       <div class="en"><b>4. Work Hours & Weekly Rest</b><br>6 working days/week, 8 hours/day, one rest day per week</div></div>
     <div class="bi-row"><div class="ar"><b>5. الإجازات السنوية</b><br>يحق للطرف الثاني إجازة سنوية مدفوعة الأجر مدتها ${esc(emp.annualLeave||21)} يوماً تقويمياً عن كل عام</div>
       <div class="en"><b>5. Annual Leave</b><br>${esc(emp.annualLeave||21)} paid calendar days per year</div></div>
+    <div class="avoid-break">
     <div class="section-title">6. الأجر والمزايا المالية / Wages & Benefits</div>
     <table class="doc-table"><thead><tr><th>البند</th><th>المبلغ (ر.س)</th></tr></thead>
       <tbody>
@@ -202,6 +189,7 @@ function renderEmploymentContract(emp, m, opts){
         <tr><td>بدل غلاء المعيشة</td><td>${money(emp.living)}</td></tr>
         <tr><td><b>الإجمالي شهرياً</b></td><td><b>${money(emp.total)}</b></td></tr>
       </tbody></table>
+    </div>
     ${opts.commission ? `<div class="bi-row"><div class="ar"><b>6.1 العمولة</b><br>${esc(m.commissionText||'يستحق الطرف الثاني عمولة إضافية وفق نظام العمولات المعتمد لدى الطرف الأول، وتحتسب وتصرف شهرياً حسب تحقق الشروط.')}</div><div class="en"><b>6.1 Commission</b><br>${esc(m.commissionTextEn||"The second party is entitled to additional commission per the employer's approved commission scheme, calculated and paid monthly upon meeting the conditions.")}</div></div>` : ''}
     <div class="bi-row"><div class="ar"><b>7. الحساب البنكي</b><br>اسم البنك: ${esc(emp.bankAr)} — رقم الآيبان: ${esc(emp.iban)}</div>
       <div class="en"><b>7. Bank Account</b><br>Bank: ${esc(emp.bankEn||emp.bankAr)} — IBAN: ${esc(emp.iban)}</div></div>
@@ -264,34 +252,46 @@ const FORM_AQD_NAQLIYAT_AMOLA = {
 };
 
 const FORM_AQD_TASHEERA = {
-  id:'aqd-tasheera', cat:'contracts', titleAr:'عقد عمل تأشيرة',
+  id:'aqd-tasheera', cat:'contracts', titleAr:'عقد عمل تأشيرة (يدوي)',
+  standalone:true,
   manualFields:[
+    {key:'company', label:'الشركة', type:'select', options:Object.keys(COMPANIES), default:'بيت هائل للنقليات'},
     {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
     {key:'visaNumber', label:'رقم التأشيرة', type:'text'},
-    {key:'monthlySalary', label:'الراتب الشهري (ر.س)', type:'number', default: e=>e?.total},
+    {key:'employeeName', label:'اسم الموظف (عربي)', type:'text'},
+    {key:'employeeNameEn', label:'اسم الموظف (إنجليزي)', type:'text'},
+    {key:'nationalityAr', label:'الجنسية (عربي)', type:'text'},
+    {key:'nationalityEn', label:'Nationality (EN)', type:'text'},
+    {key:'passportNumber', label:'رقم الجواز', type:'text'},
+    {key:'jobTitleAr', label:'المهنة (عربي)', type:'text'},
+    {key:'jobTitleEn', label:'Job Title (EN)', type:'text'},
+    {key:'monthlySalary', label:'الراتب الشهري (ر.س)', type:'number'},
     {key:'contractYears', label:'مدة العقد (سنوات)', type:'number', default:'2'},
     {key:'probationMonths', label:'فترة التجربة (أشهر)', type:'number', default:'6'},
   ],
   render(emp,m){
-    const co = companyOf(emp);
+    const co = COMPANIES[m.company] || DEFAULT_COMPANY;
     return `
-      ${docHeader(emp,'عقد عمل')}
+      <div class="doc-header"><img src="assets/logo.png"><div class="co-name">${co.nameAr}<br>${co.nameEn}</div></div>
+      <div class="doc-title"><h1>عقد عمل</h1><h2>Employment Contract</h2></div>
       <div class="row">${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}${kv('رقم التأشيرة', m.visaNumber)}</div>
-      <p class="para">بموجب هذا العقد تم الاتفاق بين كلا من الطرفين: الطرف الأول: ${co.nameAr} سجل تجاري رقم: ${co.cr}.</p>
-      <p class="para">الطرف الثاني السيد: <b>${esc(emp.nameAr||emp.nameEn)}</b> الجنسية: ${esc(emp.nationalityAr)} ويحمل جواز رقم: ${esc(emp.passportNumber)}. وتم الاتفاق بين الطرفين على ما يلي:</p>
-      <div class="clause"><span class="num">1.</span> أن يعمل الطرف الثاني لدى الطرف الأول بمهنة: ${esc(emp.jobTitleAr)}، وأن يعمل في أي مكان حسب متطلبات العمل لدى الطرف الأول.</div>
-      <div class="clause"><span class="num">2.</span> يؤمّن الطرف الأول للطرف الثاني سكناً جماعياً ورعاية صحية ومواصلات يتم الاتفاق عليها.</div>
-      <div class="clause"><span class="num">3.</span> يدفع الطرف الأول للطرف الثاني راتباً شهرياً قدره ${money(m.monthlySalary||emp.total)} ريال.</div>
-      <div class="clause"><span class="num">4.</span> العقد لمدة ${esc(m.contractYears||2)} سنة/سنوات قابل للتجديد، يبدأ من تاريخ وصول الطرف الثاني لمقر عمله واستلامه العمل.</div>
-      <div class="clause"><span class="num">5.</span> تعتبر أول ${esc(m.probationMonths||6)} أشهر فترة تجربة، ويعتبر العقد ساري المفعول بعد انتهائها.</div>
-      <div class="clause"><span class="num">6.</span> يتعهد الطرف الثاني بالحفاظ على الآلات التي في عهدته، ويكون مسؤولاً مسؤولية كاملة عنها وإعادتها بعد انتهاء العمل.</div>
-      <div class="clause"><span class="num">7.</span> يعتبر نظام العمل المعمول به في المملكة العربية السعودية مكمّلاً لبنود هذا العقد، وأي خلاف ينشأ بين الطرفين يُفصل فيه وفق هذا النظام.</div>
-      <p class="para">وعلى هذا جرى الاتفاق.</p>
-      <div class="sign-grid two" style="margin-top:50px">
-        <div class="sign-box"><div class="line">الطرف الأول: ${co.nameAr}</div></div>
-        <div class="sign-box"><div class="line">الطرف الثاني: ${esc(emp.nameAr)}</div></div>
+      <div class="bi-row">
+        <div class="ar">بموجب هذا العقد تم الاتفاق بين: الطرف الأول: ${co.nameAr}، سجل تجاري رقم: ${co.cr}.<br>والطرف الثاني السيد: <b>${esc(m.employeeName)}</b> — الجنسية: ${esc(m.nationalityAr)} — يحمل جواز رقم: ${esc(m.passportNumber)}.</div>
+        <div class="en">Under this contract, agreement was made between: First Party: ${co.nameEn}, CR No.: ${co.cr}.<br>And Second Party: Mr. <b>${esc(m.employeeNameEn||m.employeeName)}</b> — Nationality: ${esc(m.nationalityEn||m.nationalityAr)} — Passport No.: ${esc(m.passportNumber)}.</div>
       </div>
-      ${docFooter(emp)}`;
+      <div class="clause"><span class="num">1.</span> <span>أن يعمل الطرف الثاني لدى الطرف الأول بمهنة: ${esc(m.jobTitleAr)}، وأن يعمل في أي مكان حسب متطلبات العمل لدى الطرف الأول.<br><span style="color:var(--ink-soft);font-size:12.5px">The second party shall work for the first party as: ${esc(m.jobTitleEn||m.jobTitleAr)}, and may be assigned to any location as required.</span></span></div>
+      <div class="clause"><span class="num">2.</span> <span>يؤمّن الطرف الأول للطرف الثاني سكناً جماعياً ورعاية صحية ومواصلات يتم الاتفاق عليها.<br><span style="color:var(--ink-soft);font-size:12.5px">The first party shall provide shared housing, health care, and transportation as agreed.</span></span></div>
+      <div class="clause"><span class="num">3.</span> <span>يدفع الطرف الأول للطرف الثاني راتباً شهرياً قدره ${money(m.monthlySalary)} ريال.<br><span style="color:var(--ink-soft);font-size:12.5px">The first party shall pay the second party a monthly salary of ${money(m.monthlySalary)} SAR.</span></span></div>
+      <div class="clause"><span class="num">4.</span> <span>العقد لمدة ${esc(m.contractYears||2)} سنة قابل للتجديد، يبدأ من تاريخ وصول الطرف الثاني لمقر عمله واستلامه العمل.<br><span style="color:var(--ink-soft);font-size:12.5px">The contract is for ${esc(m.contractYears||2)} year(s), renewable, starting from the second party's arrival and commencement of work.</span></span></div>
+      <div class="clause"><span class="num">5.</span> <span>تعتبر أول ${esc(m.probationMonths||6)} أشهر فترة تجربة، ويعتبر العقد ساري المفعول بعد انتهائها.<br><span style="color:var(--ink-soft);font-size:12.5px">The first ${esc(m.probationMonths||6)} months shall be a probationary period, after which the contract becomes effective.</span></span></div>
+      <div class="clause"><span class="num">6.</span> <span>يتعهد الطرف الثاني بالحفاظ على الآلات التي في عهدته، ويكون مسؤولاً مسؤولية كاملة عنها وإعادتها بعد انتهاء العمل.<br><span style="color:var(--ink-soft);font-size:12.5px">The second party shall take full responsibility for any equipment entrusted to him and return it upon termination.</span></span></div>
+      <div class="clause"><span class="num">7.</span> <span>يعتبر نظام العمل المعمول به في المملكة العربية السعودية مكمّلاً لبنود هذا العقد، وأي خلاف يُفصل فيه وفق هذا النظام.<br><span style="color:var(--ink-soft);font-size:12.5px">Saudi Labor Law shall govern any matter not covered herein and any dispute between the parties.</span></span></div>
+      <p class="para">وعلى هذا جرى الاتفاق. / This agreement is made accordingly.</p>
+      <div class="sign-grid two" style="margin-top:50px">
+        <div class="sign-box"><div class="line">الطرف الأول: ${co.nameAr}<br>First Party</div></div>
+        <div class="sign-box"><div class="line">الطرف الثاني: ${esc(m.employeeName)}<br>Second Party</div></div>
+      </div>
+      ${docFooter({company:m.company})}`;
   }
 };
 
@@ -350,30 +350,45 @@ function nonRenewalNotice(id, titleAr, variant){
       const co = companyOf(emp);
       if(variant==='employee'){
         return `
-          ${docHeader(emp,'إشعار بعدم الرغبة في تجديد العقد (من الموظف)')}
+          ${docHeader(emp,'إشعار بعدم الرغبة في تجديد العقد (من الموظف)','Notice of Non-Renewal (by Employee)')}
           <div class="row">${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}${kv('الرقم الوظيفي', emp.jobNo)}</div>
           <div class="row">${kv('الاسم', emp.nameAr)}${kv('هوية رقم', emp.idNumber)}</div>
-          <p class="para">أنا الموظف المذكورة بياناته أعلاه، لا أرغب بتجديد عقدي وذلك لظروفي الشخصية، وآمل منكم الموافقة على ذلك، علماً أن آخر يوم عمل لي مع نهاية عقدي هو تاريخ: ${fmtDate(m.endDate)}.</p>
-          <div class="sign-grid two" style="margin-top:70px">${signBox('اسم وتوقيع الموظف')}${signBox('توقيع استلام الموارد البشرية')}</div>
+          <div class="bi-row">
+            <div class="ar">أنا الموظف المذكورة بياناته أعلاه، لا أرغب بتجديد عقدي وذلك لظروفي الشخصية، وآمل منكم الموافقة على ذلك، علماً أن آخر يوم عمل لي مع نهاية عقدي هو تاريخ: <b>${fmtDate(m.endDate)}</b>.</div>
+            <div class="en">I, the employee whose details are stated above, do not wish to renew my contract due to personal circumstances, and I hope you will approve this. My last working day, coinciding with the end of my contract, will be: <b>${fmtDate(m.endDate)}</b>.</div>
+          </div>
+          <div class="sign-grid two" style="margin-top:70px">${signBox('اسم وتوقيع الموظف / Employee Signature')}${signBox('توقيع استلام الموارد البشرية / HR Receipt')}</div>
           ${docFooter(emp)}`;
       }
-      // company-initiated
+      const isResident = variant==='resident';
       return `
-        ${docHeader(emp,'إشعار بعدم الرغبة في تجديد العقد')}
+        ${docHeader(emp, isResident ? 'إشعار عدم رغبة الشركة بتجديد العقد (للمقيمين)' : 'إشعار عدم رغبة الشركة بتجديد العقد (للسعوديين)', 'Notice of Non-Renewal of Contract')}
         <div class="row">${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}${kv('الرقم الوظيفي', emp.jobNo)}</div>
         <div class="row">${kv('السيد/ة', emp.nameAr)}${kv('رقم الهوية', emp.idNumber)}</div>
         <div class="row">${kv('المسمى الوظيفي', emp.jobTitleAr)}</div>
-        <p class="para">بداية، نتقدم لكم بخالص التقدير والامتنان على ما قدمتم وبذلتم من جهود وتعاون وتفانٍ في العمل طوال فترة عملكم لدينا في ${co.nameAr}.</p>
-        <p class="para">ويؤسفنا إبلاغكم بعدم رغبة الشركة في تجديد عقد العمل المقرر انتهاؤه بتاريخ: <b>${fmtDate(m.endDate)}</b>${m.reason?(' وذلك بسبب: '+esc(m.reason)):''}.</p>
-        <p class="para">سيتم عمل خروج نهائي للموظف في حال عدم رفع طلب نقل كفالة عبر منصة قوى بعد انتهاء العقد.</p>
-        <p class="para">كما نشكر لكم حسن السيرة والسلوك طوال فترة عملكم لدينا، مع تمنياتنا لكم بدوام التوفيق والنجاح.</p>
-        <div class="sign-grid two" style="margin-top:60px">${signBox('إدارة الموارد البشرية')}${signBox('توقيع استلام الإشعار من الموظف')}</div>
+        <div class="bi-row">
+          <div class="ar">بداية، نتقدم لكم بخالص التقدير والامتنان على ما قدمتم وبذلتم من جهود وتعاون وتفانٍ في العمل طوال فترة عملكم لدينا في ${co.nameAr}.</div>
+          <div class="en">First of all, we extend our sincere appreciation and gratitude for your efforts, cooperation and dedication throughout your period of work with us at ${co.nameEn}.</div>
+        </div>
+        <div class="bi-row">
+          <div class="ar">ويؤسفنا إبلاغكم بعدم رغبة الشركة في تجديد عقد العمل المقرر انتهاؤه بتاريخ: <b>${fmtDate(m.endDate)}</b>${m.reason?(' وذلك بسبب: '+esc(m.reason)):''}.</div>
+          <div class="en">We regret to inform you of the company's unwillingness to renew the employment contract, due to expire on: <b>${fmtDate(m.endDate)}</b>${m.reason?(', due to: '+esc(m.reason)):''}.</div>
+        </div>
+        ${isResident ? `<div class="bi-row">
+          <div class="ar">سيتم عمل خروج نهائي للموظف في حال عدم رفع طلب نقل كفالة عبر منصة قوى بعد انتهاء العقد.</div>
+          <div class="en">A final exit will be processed for the employee if a sponsorship transfer request is not submitted via the Qiwa platform after the contract ends.</div>
+        </div>` : ''}
+        <div class="bi-row">
+          <div class="ar">كما نشكر لكم حسن السيرة والسلوك طوال فترة عملكم لدينا، مع تمنياتنا لكم بدوام التوفيق والنجاح.</div>
+          <div class="en">We also thank you for your good conduct throughout your period of work with us, wishing you continued success.</div>
+        </div>
+        <div class="sign-grid two" style="margin-top:50px">${signBox('إدارة الموارد البشرية / HR Department')}${signBox('توقيع استلام الإشعار من الموظف / Employee Receipt')}</div>
         ${docFooter(emp)}`;
     }
   };
 }
-const FORM_NON_RENEWAL_GENERAL = nonRenewalNotice('non-renewal-general','إشعار بعدم الرغبة بتجديد العقد (عام)','company');
-const FORM_NON_RENEWAL_COMPANY = nonRenewalNotice('non-renewal-company','إشعار عدم رغبة الشركة بتجديد العقد','company');
+const FORM_NON_RENEWAL_RESIDENT = nonRenewalNotice('non-renewal-resident','إشعار عدم رغبة الشركة بتجديد العقد (للمقيمين)','resident');
+const FORM_NON_RENEWAL_SAUDI = nonRenewalNotice('non-renewal-saudi','إشعار عدم رغبة الشركة بتجديد العقد (للسعوديين)','saudi');
 const FORM_NON_RENEWAL_EMPLOYEE = nonRenewalNotice('non-renewal-employee','إشعار عدم رغبة الموظف بتجديد العقد','employee');
 
 const FORM_TERM_PROBATION = {
@@ -606,8 +621,8 @@ const FORM_VACATION_DUES = {
   id:'vacation-dues', cat:'financial', titleAr:'طلب صرف مستحقات إجازة',
   manualFields:[
     {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
-    {key:'startVacation', label:'تاريخ بداية الإجازة', type:'date'},
-    {key:'endVacation', label:'تاريخ نهاية الإجازة', type:'date'},
+    {key:'startWork', label:'تاريخ بداية العمل', type:'date', default: e=>e?.joinDate},
+    {key:'lastDay', label:'تاريخ آخر يوم عمل', type:'date'},
     {key:'ticketFrom', label:'الرحلة من', type:'text'},
     {key:'ticketTo', label:'الرحلة إلى', type:'text'},
     {key:'ticketAmount', label:'سعر التذكرة (ر.س)', type:'number'},
@@ -615,6 +630,7 @@ const FORM_VACATION_DUES = {
     {key:'unpaidDays', label:'أيام إجازة بدون راتب', type:'number', default:'0'},
   ],
   render(emp,m){
+    const {y,m:mo,d} = dateDiffYMD(m.startWork||emp.joinDate, m.lastDay);
     return `
       ${docHeader(emp,'طلب صرف مستحقات إجازة','Vacation Benefits Request')}
       <div class="row">${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}</div>
@@ -622,8 +638,11 @@ const FORM_VACATION_DUES = {
       <table class="doc-table"><thead><tr><th>الأساسي</th><th>السكن</th><th>النقل</th><th>أخرى</th><th>الإجمالي</th></tr></thead>
         <tbody><tr><td>${money(emp.basic)}</td><td>${money(emp.housing)}</td><td>${money(emp.transport)}</td><td>${money(emp.living)}</td><td><b>${money(emp.total)}</b></td></tr></tbody></table>
       <div class="row">${kv('رصيد الإجازات (يوم)', emp.annualLeave)}${kv('مبلغ بدل الإجازة', money(m.vacationAllowance))}${kv('أيام بدون راتب', m.unpaidDays)}</div>
+      <div class="section-title">مدة الخدمة</div>
+      <div class="row">${kv('تاريخ بداية العمل', m.startWork?fmtDate(m.startWork):'—')}${kv('تاريخ آخر يوم عمل', m.lastDay?fmtDate(m.lastDay):'—')}</div>
+      <table class="doc-table"><thead><tr><th>سنة</th><th>شهر</th><th>يوم</th></tr></thead>
+        <tbody><tr><td>${y}</td><td>${mo}</td><td>${d}</td></tr></tbody></table>
       <div class="section-title">تفاصيل السفر</div>
-      <div class="row">${kv('من تاريخ', m.startVacation?fmtDate(m.startVacation):'—')}${kv('إلى تاريخ', m.endVacation?fmtDate(m.endVacation):'—')}</div>
       <div class="row">${kv('الرحلة من', m.ticketFrom)}${kv('الرحلة إلى', m.ticketTo)}${kv('سعر التذكرة', money(m.ticketAmount))}</div>
       <div class="sign-grid" style="margin-top:40px">${signBox('توقيع الإدارة')}${signBox('توقيع الموارد البشرية')}${signBox('توقيع الإدارة المالية')}</div>
       <div class="sign-grid two" style="margin-top:20px">${signBox('توقيع الموظف')}<div></div></div>
@@ -653,9 +672,33 @@ function salaryReceiptForm(id, titleAr, opts){
   };
 }
 const FORM_RECEIPT_SALARY = salaryReceiptForm('receipt-salary','سند استلام راتب', {defaultPeriodText:'وذلك راتب عن الشهر الحالي.'});
-const FORM_RECEIPT_SALARY_EXT = salaryReceiptForm('receipt-salary-ext','سند استلام راتب - عمالة خارجية', {employeeLabel:'السيد', defaultPeriodText:'وذلك راتب عن مدة العمل المحددة.'});
 const FORM_RECEIPT_BONUS = salaryReceiptForm('receipt-bonus','سند استلام مكافأة', {defaultPeriodText:'وذلك مكافأة عن العام الحالي.'});
 const FORM_RECEIPT_ADVANCE = salaryReceiptForm('receipt-advance','سند استلام سلفة', {defaultPeriodText:'وذلك كسلفة تُسترد مني نهاية الشهر.'});
+
+const FORM_RECEIPT_SALARY_EXT = {
+  id:'receipt-salary-ext', cat:'financial', titleAr:'سند استلام راتب - عمالة خارجية (يدوي)',
+  standalone:true,
+  manualFields:[
+    {key:'company', label:'الشركة', type:'select', options:Object.keys(COMPANIES), default:'بيت هائل للنقليات'},
+    {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
+    {key:'name', label:'الاسم', type:'text'},
+    {key:'nameEn', label:'Name (EN)', type:'text'},
+    {key:'amount', label:'المبلغ (ر.س)', type:'number'},
+    {key:'period', label:'وصف الفترة (مثال: راتب شهر سبتمبر من 01/09 إلى 02/09)', type:'text'},
+  ],
+  render(emp,m){
+    const co = COMPANIES[m.company] || DEFAULT_COMPANY;
+    return `
+      <div class="doc-header"><img src="assets/logo.png"><div class="co-name">${co.nameAr}<br>${co.nameEn}</div></div>
+      <div class="doc-title"><h1>سند استلام راتب - عمالة خارجية</h1></div>
+      <div class="row">${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}</div>
+      <p class="para">أنا السيد: <b>${esc(m.name)}</b> (${esc(m.nameEn||'')})،</p>
+      <p class="para">استلمت من ${co.nameAr} مبلغاً وقدره: <b>${money(m.amount)} ريال سعودي</b>،</p>
+      <p class="para">${esc(m.period)||'<span class="tag-empty">—</span>'}</p>
+      <div class="sign-grid two" style="margin-top:70px">${signBox('توقيع المستلم')}${signBox('توقيع الموارد البشرية')}</div>
+      ${docFooter({company:m.company})}`;
+  }
+};
 
 const FORM_ADVANCE_REQUEST = {
   id:'advance-request', cat:'financial', titleAr:'طلب سلفة',
@@ -760,28 +803,6 @@ const FORM_SALARY_ADJUST_2 = {
 /* ============================================================
    5) العمليات اليومية
    ============================================================ */
-const FORM_HIRING_PROCEDURES = {
-  id:'hiring-procedures', cat:'operations', titleAr:'إجراءات التوظيف',
-  manualFields:[
-    {key:'startDate', label:'تاريخ مباشرة العمل', type:'date', default: e=>e?.joinDate},
-    {key:'maritalStatus', label:'الحالة الاجتماعية', type:'text'},
-    {key:'workCity', label:'مدينة العمل', type:'text', default: e=>e?.workLocationAr},
-  ],
-  render(emp,m){
-    return `
-      ${docHeader(emp,'إجراءات التوظيف','Employment Procedures')}
-      <div class="row">${kv('سعودي / أجنبي', emp.nationalityAr==='سعودي'?'سعودي':'أجنبي')}</div>
-      <div class="row">${kv('اسم الموظف', emp.nameAr)}${kv('رقم الهوية', emp.idNumber)}</div>
-      <div class="row">${kv('تاريخ الميلاد', fmtDate(emp.birthDate))}${kv('الحالة الاجتماعية', m.maritalStatus)}</div>
-      <div class="row">${kv('الجنسية', emp.nationalityAr)}${kv('البريد الإلكتروني', emp.email)}</div>
-      <div class="row">${kv('رقم الجوال', emp.phone)}${kv('مدينة العمل', m.workCity)}</div>
-      <div class="row">${kv('اسم البنك', emp.bankAr)}${kv('رقم الحساب/الآيبان', emp.iban)}</div>
-      <div class="row">${kv('تاريخ مباشرة العمل', m.startDate?fmtDate(m.startDate):'—')}</div>
-      <div class="sign-grid" style="margin-top:50px">${signBox('توقيع الموظف')}${signBox('توقيع المدير المباشر')}${signBox('توقيع الموارد البشرية')}</div>
-      ${docFooter(emp)}`;
-  }
-};
-
 const FORM_MUBASHARAT_AMAL = {
   id:'mubasharat-amal', cat:'operations', titleAr:'إقرار مباشرة عمل',
   manualFields:[
@@ -946,7 +967,7 @@ const FORMS = [
   // عقود العمل
   FORM_AQD_MAWAD, FORM_AQD_NAQLIYAT, FORM_AQD_SIYANA, FORM_AQD_MAWAD_AMOLA, FORM_AQD_NAQLIYAT_AMOLA, FORM_AQD_TASHEERA,
   // إنهاء الخدمة وإخلاء الطرف
-  FORM_IKHLA_TARAF, FORM_IKHLA_TARAF_CHECKLIST, FORM_NON_RENEWAL_GENERAL, FORM_NON_RENEWAL_COMPANY, FORM_NON_RENEWAL_EMPLOYEE,
+  FORM_IKHLA_TARAF, FORM_IKHLA_TARAF_CHECKLIST, FORM_NON_RENEWAL_RESIDENT, FORM_NON_RENEWAL_SAUDI, FORM_NON_RENEWAL_EMPLOYEE,
   FORM_TERM_PROBATION, FORM_TERM_MUTUAL, FORM_TERM_RELATIONSHIP, FORM_RESIGN, FORM_RESIGN_PROBATION,
   FORM_EXTEND_PROBATION, FORM_SETTLEMENT_DATA, FORM_MUKHALASA_MALIYA,
   // المالية والمستحقات
@@ -954,6 +975,6 @@ const FORMS = [
   FORM_RECEIPT_ADVANCE, FORM_RECEIPT_SALARY_EXT, FORM_RECEIPT_SALARY, FORM_RECEIPT_BONUS,
   FORM_SALARY_ADJUST_1, FORM_SALARY_ADJUST_2,
   // العمليات اليومية
-  FORM_HIRING_PROCEDURES, FORM_ABSENCE_WARNING, FORM_BUSINESS_TRIP, FORM_TRAVEL_DUES,
+  FORM_ABSENCE_WARNING, FORM_BUSINESS_TRIP, FORM_TRAVEL_DUES,
   FORM_ASSIGNMENT_REPORT, FORM_MUBASHARAT_AMAL, FORM_INVESTIGATION_RECORD,
 ];
