@@ -214,6 +214,7 @@ table.ct-table{width:100%;border-collapse:collapse;margin:0 0 4px;page-break-ins
 .ct-num{width:34px;text-align:center;font-weight:800;color:var(--sand);background:#f6f6f4;}
 .ct-plain-title{display:flex;justify-content:space-between;font-weight:800;font-size:14.5px;margin:14px 0 8px;padding:0 4px;}
 .ct-plain-title span:last-child{color:var(--ink)}
+.ct-page{page-break-inside:auto;}
 
 .sign-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:50px;page-break-inside:avoid;}
 .sign-grid.two{grid-template-columns:repeat(2,1fr);}

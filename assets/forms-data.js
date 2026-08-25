@@ -175,11 +175,19 @@ function ctClause(num, enText, arText){
 function ctTable(rowsHtml){
   return `<div class="avoid-break"><table class="ct-table" dir="ltr"><tbody>${rowsHtml}</tbody></table></div>`;
 }
+function ctPageBreakTable(rowsHtml){
+  return `<div class="avoid-break" style="page-break-before:always">${ctLogo()}<table class="ct-table" dir="ltr"><tbody>${rowsHtml}</tbody></table></div>`;
+}
 function ctTableLoose(rowsHtml){
   return `<div class="avoid-break"><table class="ct-table" dir="ltr"><tbody>${rowsHtml}</tbody></table></div>`;
 }
 function ctPlainTitle(en, ar){
   return `<div class="ct-plain-title"><span>${en}</span><span>${ar}</span></div>`;
+}
+
+function ctPageWrap(innerHtml, isLast){
+  const breakStyle = isLast ? '' : 'page-break-after:always;break-after:page;';
+  return `<div class="ct-page" style="${breakStyle}overflow:hidden;">${innerHtml}</div>`;
 }
 
 function renderEmploymentContract(emp, m, opts){
@@ -193,8 +201,8 @@ function renderEmploymentContract(emp, m, opts){
   const signatoryTitleEn = esc(m.signatoryTitle || 'Representative');
   const dateStr = m.contractDate ? fmtDate(m.contractDate) : todayStr();
 
-  let html = ctLogo();
-  html += ctTable(
+  let page1 = ctLogo();
+  page1 += ctTable(
     ctRow2(
       `This Agreement was made in <b>${dateStr}</b> between:`,
       `أبرم هذا العقد في: <b>${dateStr}</b> بين:`
@@ -214,12 +222,12 @@ function renderEmploymentContract(emp, m, opts){
       'تعتبر بيانات الطرفين أعلاه جزءاً لا يتجزأ من هذا العقد، وتشكل مع ملاحقه وحدة متكاملة وتعتبر جزءاً من العقد بحيث تفسر ويتمم بعضها بعضاً.'
     )
   );
-  html += ctTable(
+  page1 += ctTable(
     ctHeadRow("First Party's Information", 'بيانات الطرف الأول') +
     ctRow4('National Address:', co.addressEn.replace(/\n/g,'<br>'), co.addressAr.replace(/\n/g,'<br>'), ':العنوان الوطني') +
     ctRow4('Email:', 'info2@hail-house.sa', 'info2@hail-house.sa', ':البريد الالكتروني')
   );
-  html += ctTable(
+  page1 += ctTable(
     ctHeadRow("Second Party's Information", 'بيانات الطرف الثاني') +
     ctRow4('Gender:', esc(emp.genderEn), esc(emp.genderAr), ':الجنس') +
     ctRow4('Birth Date:', fmtDate(emp.birthDate), fmtDate(emp.birthDate), ':تاريخ الميلاد') +
@@ -228,17 +236,16 @@ function renderEmploymentContract(emp, m, opts){
     ctRow4('E-mail:', esc(emp.email), esc(emp.email), ':البريد الالكتروني')
   );
 
-  html += `<div style="page-break-before:always">${ctLogo()}</div>`;
-  html += ctPlainTitle('Contract Terms', 'بنود العقد');
-
-  html += ctTable(
+  let page2 = ctLogo();
+  page2 += ctPlainTitle('Contract Terms', 'بنود العقد');
+  page2 += ctTable(
     ctHeadRow("1. Job's Title & Work's Location", 'المهنة ومكان العمل .1') +
     ctRow4('Job Title:', esc(emp.jobTitleEn||emp.jobTitleAr), esc(emp.jobTitleAr), ':المسمى الوظيفي') +
     ctRow4('Work Location:', esc(emp.workLocationEn||emp.workLocationAr), esc(emp.workLocationAr), ': مقر العمل') +
     ctRow4('Work Domain:', 'Inside Saudi Arabia', 'داخل المملكة', ':نطاق العمل') +
     ctRow4('Work Type:', 'Full Time', 'دوام كامل', ':نوع العمل')
   );
-  html += ctTable(
+  page2 += ctTable(
     ctHeadRow("2. Contract's Period", 'مدة العقد .2') +
     ctRow2(
       `The contract shall be effective for a period of <b>${esc(m.durationEn||'One year')}</b> which starts from the joining date on`,
@@ -246,28 +253,28 @@ function renderEmploymentContract(emp, m, opts){
     ) +
     ctRow2(`FROM <b>${fmtDate(start)}</b> TO <b>${fmtDate(end)}</b>`, `من تاريخ <b>${fmtDate(start)}</b> الى تاريخ <b>${fmtDate(end)}</b>`)
   );
-  html += ctTable(
+  page2 += ctTable(
     ctHeadRow('3. Probationary Period', 'فترة التجربة .3') +
     ctRow2(
       `The second party shall be under probationary period of <b>${esc(m.probationDays||90)} days</b> beginning from the official date of reporting to work and it does not include Eid AL-FITR holiday nor Eid AL-ADHA holiday nor sick leaves.`,
       `يخضع الطرف الثاني لفترة تجربة مدتها <b>${esc(m.probationDays||90)} يوم</b> تبدأ من تاريخ مباشرته للعمل ولا يدخل في حسابها إجازة عيدي الفطر والأضحى والإجازة المرضية.`
     )
   );
-  html += ctTable(
+  page2 += ctTable(
     ctHeadRow('4. Work Hours & Weekly Rest', 'ساعات العمل والراحة الأسبوعية .4') +
     ctRow2(
       'Normal working days shall be 6 days per week and working hours shall be 8 hours (DAILY). In addition, the second party shall be entitled to 1 day rest per week. Working days and working times are determined by the employer.',
       'تحدد أيام العمل العادية بـ 6 أيام في الأسبوع وتحدد ساعات العمل اليومية بـ 8 ساعات في اليوم. ويحق للطرف الثاني يوم راحة واحد في الأسبوع، وتحدد أيام العمل وأوقات العمل من قبل صاحب العمل.'
     )
   );
-  html += ctTable(
+  page2 += ctTable(
     ctHeadRow('5. Annual Leave', 'الاجازات السنوية .5') +
     ctRow2(
       `The second party shall be entitled to a paid vacation of <b>${esc(emp.annualLeave||21)}</b> calendar days, each year.`,
       `يحق للطرف الثاني عن كل عام إجازة سنوية مدفوعة الاجر مدتها <b>${esc(emp.annualLeave||21)}</b> يوم تقويمي.`
     )
   );
-  html += ctTable(
+  page2 += ctTable(
     ctHeadRow('6. Wages & Financial Benefits', 'الاجر والمزايا المالية .6') +
     ctRow2('The second party shall be given the following wage and benefits:', 'يستحق الطرف الثاني الأجر والبدلات والمزايا التالية:') +
     ctRow4('Basic Wage:', money(emp.basic), money(emp.basic), ':الاجر الأساسي') +
@@ -283,41 +290,42 @@ function renderEmploymentContract(emp, m, opts){
       `يدفع الطرف الأول للطرف الثاني اجراً قدره <b>${money(emp.total)}</b> ريال سعودي فقط نهاية كل شهر.`
     )
   );
-  html += ctTable(
+  page2 += ctTable(
     ctHeadRow("7. Second Party's Bank Account Information", 'معلومات الحساب البنكي للطرف الثاني .7') +
     ctRow4('Bank Name:', esc(emp.bankEn||emp.bankAr), esc(emp.bankAr), ': اسم البنك') +
     ctRow4('IBAN:', esc(emp.iban), esc(emp.iban), ':رقم الايبان')
   );
 
-  html += `<div style="page-break-before:always">${ctLogo()}</div>`;
-  html += ctTable(
+  let page3 = ctLogo();
+  page3 += ctTable(
     ctHeadRow("8. First Party's Obligations", 'التزامات الطرف الأول .8') +
     CONTRACT_OBLIGATIONS.map(([n,en,ar])=>ctClause(n,en,ar)).join('')
   );
-  html += ctTable(
+  page3 += ctTable(
     ctHeadRow("9. Second Party's Obligations", 'التزامات الطرف الثاني .9') +
     CONTRACT_DUTIES.map(([n,en,ar])=>ctClause(n,en,ar)).join('')
   );
 
-  html += `<div style="page-break-before:always">${ctLogo()}</div>`;
-  html += ctTable(
+  let page4 = ctLogo();
+  page4 += ctTable(
     ctHeadRow('10. General Provisions', 'أحكام عامة .10') +
     CONTRACT_GENERAL.map(([n,en,ar])=>ctClause(n,en,ar)).join('')
   );
-  html += ctTable(
+  page4 += ctTable(
     ctHeadRow('11. Additional Terms', 'بنود إضافية .11') +
     CONTRACT_ADDITIONAL.map(([n,en,ar])=>ctClause(n,en,ar)).join('')
   );
 
-  html += `<div style="height:24px"></div>`;
-  html += ctTableLoose(
+  page4 += `<div style="height:24px"></div>`;
+  page4 += ctTableLoose(
     `<tr class="ct-head"><th style="width:50%">${co.nameAr}</th><th style="width:50%">اسم الموظف</th></tr>` +
     `<tr><td class="rtl ctr">${signatory}</td><td class="rtl ctr">${esc(emp.nameAr)}</td></tr>` +
     `<tr><td class="ltr ctr">${signatoryEn}</td><td class="ltr ctr">${esc(emp.nameEn||'')}</td></tr>` +
     `<tr><td style="height:50px"></td><td></td></tr>`
   );
-  html += docFooter(emp);
-  return html;
+  page4 += docFooter(emp);
+
+  return ctPageWrap(page1, false) + ctPageWrap(page2, false) + ctPageWrap(page3, false) + ctPageWrap(page4, true);
 }
 
 const CONTRACT_MANUAL_FIELDS = [
