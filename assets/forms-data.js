@@ -999,6 +999,8 @@ const FORM_VACATION_DUES = {
     {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
     {key:'startWork', label:'تاريخ بداية العمل', type:'date', default: e=>e?.joinDate},
     {key:'lastDay', label:'تاريخ آخر يوم عمل', type:'date'},
+    {key:'currentBalance', label:'رصيد الإجازات الحالي', type:'number', default: e=>e?.annualLeave},
+    {key:'usedDays', label:'الإجازات المستنفذة', type:'number', default:'0'},
     {key:'ticketFrom', label:'الرحلة من', type:'text'},
     {key:'ticketTo', label:'الرحلة إلى', type:'text'},
     {key:'ticketAmount', label:'سعر التذكرة (ر.س)', type:'number'},
@@ -1013,7 +1015,7 @@ const FORM_VACATION_DUES = {
       <div class="row">${kv('الاسم', emp.nameAr)}${kv('الوظيفة', emp.jobTitleAr)}${kv('الرقم الوظيفي', emp.jobNo)}${kv('الجنسية', emp.nationalityAr)}</div>
       <table class="doc-table"><thead><tr><th>الأساسي</th><th>السكن</th><th>النقل</th><th>أخرى</th><th>الإجمالي</th></tr></thead>
         <tbody><tr><td>${money(emp.basic)}</td><td>${money(emp.housing)}</td><td>${money(emp.transport)}</td><td>${money(emp.living)}</td><td><b>${money(emp.total)}</b></td></tr></tbody></table>
-      <div class="row">${kv('رصيد الإجازات (يوم)', emp.annualLeave)}${kv('مبلغ بدل الإجازة', money(m.vacationAllowance))}${kv('أيام بدون راتب', m.unpaidDays)}</div>
+      <div class="row">${kv('رصيد الإجازات الحالي', m.currentBalance)}${kv('الإجازات المستنفذة', m.usedDays)}${kv('مبلغ بدل الإجازة', money(m.vacationAllowance))}${kv('أيام بدون راتب', m.unpaidDays)}</div>
       <div class="row">${kv('اسم البنك', emp.bankAr)}${kv('رقم الآيبان', emp.iban)}</div>
       <div class="section-title">مدة الخدمة</div>
       <div class="row">${kv('تاريخ بداية العمل', m.startWork?fmtDate(m.startWork):'—')}${kv('تاريخ آخر يوم عمل', m.lastDay?fmtDate(m.lastDay):'—')}</div>
