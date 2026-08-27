@@ -265,39 +265,14 @@ table.sct-table{width:100%;border-collapse:collapse;margin-bottom:14px;}
 .sct-footer-name{text-align:center;font-weight:800;font-size:13.5px;margin-top:16px;line-height:1.6;}
 
 /* قالب الوصف الوظيفي */
-.jd-header{background:var(--ink);color:#fff;padding:26px 30px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;gap:24px;}
-.jd-header img{height:44px;filter:invert(1) brightness(2);flex-shrink:0;}
-.jd-header .titles{text-align:right;flex:1;}
-.jd-header h1{font-size:21px;margin:0 0 5px;font-weight:800;line-height:1.3;}
-.jd-header h2{font-size:13.5px;margin:0;color:var(--sand-light);font-weight:600;direction:ltr;text-align:right;}
-.jd-header .dept{font-size:12px;color:#b9b2a0;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.15);}
-.jd-body{display:flex;align-items:stretch;border:1px solid var(--line);border-top:none;border-radius:0 0 12px 12px;overflow:hidden;background:#fff;}
-.jd-sidebar{width:34%;background:#faf8f4;padding:22px 18px;border-inline-end:1px solid var(--line);}
-.jd-sidebar>*+*{margin-top:24px;}
-.jd-main{flex:1;padding:22px 24px;}
-.jd-main>*+*{margin-top:20px;}
-.jd-side-title{font-size:11.5px;font-weight:800;color:var(--sand);text-transform:uppercase;letter-spacing:.05em;margin:0 0 12px;display:flex;align-items:center;gap:6px;}
-.jd-side-title:before{content:"";width:4px;height:4px;border-radius:50%;background:var(--sand);}
-.jd-info-grid{display:flex;flex-direction:column;gap:12px;}
-.jd-info-item{background:#fff;border:1px solid var(--line);border-radius:7px;padding:9px 12px;}
-.jd-info-item .lbl{font-size:10.5px;color:#999;font-weight:700;margin-bottom:3px;}
-.jd-info-item .val{font-size:12.5px;color:var(--ink);font-weight:700;line-height:1.5;}
-.jd-values{display:flex;flex-wrap:wrap;gap:7px;}
-.jd-values span{background:var(--ink);color:#fff;font-size:10.5px;font-weight:700;padding:5px 11px;border-radius:20px;}
-.jd-req-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
-.jd-req-list li{font-size:12px;line-height:1.6;display:flex;gap:7px;align-items:flex-start;}
-.jd-req-list li:before{content:"✓";color:#fff;background:var(--ok);width:15px;height:15px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;margin-top:1px;}
-.jd-section-title{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:800;color:var(--ink);margin:0 0 12px;padding-bottom:8px;border-bottom:2px solid var(--sand-light);}
-.jd-section-title .ic{width:26px;height:26px;border-radius:7px;background:var(--sand-light);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
-.jd-objective{font-size:13px;line-height:1.9;color:var(--ink-soft);background:var(--sand-light);padding:14px 16px;border-radius:8px;border-inline-start:3px solid var(--sand);}
-.jd-num-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;}
-.jd-num-list li{display:flex;gap:11px;font-size:12.5px;line-height:1.75;align-items:flex-start;}
-.jd-num-list li b{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:800;margin-top:1px;}
-.jd-two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.jd-mini-box{background:#faf8f4;border:1px solid var(--line);border-radius:9px;padding:14px 16px;}
-.jd-mini-box h4{font-size:12.5px;margin:0 0 8px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:6px;}
-.jd-mini-box p{font-size:11.5px;line-height:1.8;color:var(--ink-soft);margin:0;white-space:pre-line;}
-.jd-empty{font-size:11.5px;color:#aaa;font-style:italic;}
+.jd-num-list{list-style:none;counter-reset:jdnum;margin:0 0 4px;padding:0;}
+.jd-num-list li{counter-increment:jdnum;position:relative;padding-inline-start:26px;margin-bottom:8px;font-size:13.5px;line-height:1.65;color:var(--ink);}
+.jd-num-list li:before{content:counter(jdnum)".";position:absolute;inset-inline-start:0;top:0;font-weight:800;color:var(--sand);}
+.jd-req-list{margin:0 0 4px;padding-inline-start:20px;}
+.jd-req-list li{font-size:13.5px;line-height:1.65;margin-bottom:6px;color:var(--ink);}
+.jd-empty{font-size:12.5px;color:#aaa;font-style:italic;margin:0 0 4px;}
+.jd-values-row{font-size:13px;color:var(--ink-soft);border-top:1px solid var(--line);margin-top:14px;padding-top:10px;}
+.jd-values-row b{color:var(--ink);font-weight:800;margin-inline-end:4px;}
 
 /* ---------- Login screen ---------- */
 .login-screen{

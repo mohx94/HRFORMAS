@@ -592,7 +592,7 @@ const CONTRACT_MANUAL_FIELDS = [
 ];
 
 /* ============================================================
-   الوصف الوظيفي
+   الوصف الوظيفي - تصميم رسمي منسّق بنفس هوية النظام
    ============================================================ */
 function jdListToItems(text){
   return (text||'').split('\n').map(s=>s.trim()).filter(Boolean);
@@ -600,7 +600,7 @@ function jdListToItems(text){
 function jdNumList(text){
   const items = jdListToItems(text);
   if(!items.length) return '<p class="jd-empty">لم تُذكر بنود بعد</p>';
-  return `<ol class="jd-num-list">${items.map((it,i)=>`<li><b>${i+1}</b><span>${esc(it)}</span></li>`).join('')}</ol>`;
+  return `<ol class="jd-num-list">${items.map(it=>`<li>${esc(it)}</li>`).join('')}</ol>`;
 }
 function jdReqList(text){
   const items = jdListToItems(text);
@@ -627,53 +627,29 @@ const FORM_JOB_DESCRIPTION = {
     {key:'values', label:'قيمنا (مفصولة بفاصلة)', type:'text', default:'الالتزام، الاحترافية، الابتكار، الجودة'},
   ],
   render(emp, m){
-    const co = COMPANIES[m.company] || DEFAULT_COMPANY;
     const valuesList = (m.values||'').split(/[،,]/).map(s=>s.trim()).filter(Boolean);
     return `
-      <div class="jd-header">
-        <img src="assets/logo.png" alt="">
-        <div class="titles">
-          <h1>${esc(m.jobTitleAr)||'المسمى الوظيفي'}</h1>
-          ${m.jobTitleEn ? `<h2>${esc(m.jobTitleEn)}</h2>` : ''}
-          ${m.department ? `<div class="dept">${esc(m.department)}</div>` : ''}
-        </div>
-      </div>
-      <div class="jd-body">
-        <div class="jd-sidebar">
-          <div>
-            <div class="jd-side-title">بيانات الوظيفة</div>
-            <div class="jd-info-grid">
-              <div class="jd-info-item"><div class="lbl">المسمى الوظيفي</div><div class="val">${esc(m.jobTitleAr)||'—'}</div></div>
-              <div class="jd-info-item"><div class="lbl">القسم</div><div class="val">${esc(m.department)||'—'}</div></div>
-              <div class="jd-info-item"><div class="lbl">الإدارة</div><div class="val">${esc(m.admin)}</div></div>
-              <div class="jd-info-item"><div class="lbl">الرئيس المباشر</div><div class="val">${esc(m.directManager)}</div></div>
-              <div class="jd-info-item"><div class="lbl">موقع العمل</div><div class="val">${esc(m.workLocation)}</div></div>
-            </div>
-          </div>
-          <div>
-            <div class="jd-side-title">متطلبات الوظيفة</div>
-            ${jdReqList(m.requirements)}
-          </div>
-          ${valuesList.length ? `<div>
-            <div class="jd-side-title">قيمنا</div>
-            <div class="jd-values">${valuesList.map(v=>`<span>${esc(v)}</span>`).join('')}</div>
-          </div>` : ''}
-        </div>
-        <div class="jd-main">
-          <div>
-            <div class="jd-section-title"><span class="ic">🎯</span> الهدف العام من الوظيفة</div>
-            <div class="jd-objective">${esc(m.objective)||'لم يُذكر الهدف بعد'}</div>
-          </div>
-          <div>
-            <div class="jd-section-title"><span class="ic">💼</span> المهام والمسؤوليات</div>
-            ${jdNumList(m.responsibilities)}
-          </div>
-          ${(m.otherDuties || m.authorities) ? `<div class="jd-two-col">
-            ${m.otherDuties ? `<div class="jd-mini-box"><h4>📋 مهام أخرى</h4><p>${esc(m.otherDuties)}</p></div>` : ''}
-            ${m.authorities ? `<div class="jd-mini-box"><h4>🔑 الصلاحيات ونطاق العمل</h4><p>${esc(m.authorities)}</p></div>` : ''}
-          </div>` : ''}
-        </div>
-      </div>
+      ${docHeader({company:m.company}, 'الوصف الوظيفي', 'Job Description')}
+
+      <div class="row">${kv('المسمى الوظيفي', m.jobTitleAr)}<div class="kv" dir="ltr" style="text-align:left"><b>Job Title:</b> <span class="val">${orDash(m.jobTitleEn)}</span></div></div>
+      <div class="row">${kv('القسم', m.department)}${kv('الإدارة', m.admin)}</div>
+      <div class="row">${kv('الرئيس المباشر', m.directManager)}${kv('موقع العمل', m.workLocation)}</div>
+
+      <div class="section-title">الهدف العام من الوظيفة</div>
+      <p class="para">${esc(m.objective)||'<span class="tag-empty">—</span>'}</p>
+
+      <div class="section-title">المهام والمسؤوليات الرئيسية</div>
+      ${jdNumList(m.responsibilities)}
+
+      <div class="section-title">متطلبات ومؤهلات الوظيفة</div>
+      ${jdReqList(m.requirements)}
+
+      ${m.otherDuties ? `<div class="section-title">مهام أخرى</div><p class="para">${esc(m.otherDuties)}</p>` : ''}
+      ${m.authorities ? `<div class="section-title">الصلاحيات ونطاق العمل</div><p class="para">${esc(m.authorities)}</p>` : ''}
+
+      ${valuesList.length ? `<div class="jd-values-row"><b>القيم المؤسسية:</b> ${valuesList.join(' • ')}</div>` : ''}
+
+      <div class="sign-grid">${signBox('إعداد<br>الموارد البشرية')}${signBox('مراجعة<br>الرئيس المباشر')}${signBox('اعتماد<br>الإدارة العليا')}</div>
       ${docFooter({company:m.company})}`;
   }
 };
