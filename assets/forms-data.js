@@ -1,9 +1,9 @@
 /* ===== بيت هايل - تعريف جميع النماذج ===== */
 
 const CATEGORIES = [
-  {id:'recruitment',  title:'التوظيف والعروض الوظيفية'},
   {id:'certificates', title:'الشهادات والتعريفات'},
   {id:'contracts',    title:'عقود العمل'},
+  {id:'jobdesc',      title:'الوصف الوظيفي'},
   {id:'termination',  title:'إنهاء الخدمة وإخلاء الطرف'},
   {id:'financial',    title:'المالية والمستحقات'},
   {id:'operations',   title:'العمليات اليومية'},
@@ -17,144 +17,6 @@ function checklistTable(items, checkedDefault){
   const rows = items.map((it,i)=>`<tr><td>${i+1}</td><td style="text-align:right">${it}</td><td>☐ متوفر &nbsp;&nbsp; ☐ غير متوفر</td></tr>`).join('');
   return `<table class="doc-table"><thead><tr><th>#</th><th>الوثيقة</th><th>الحالة</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
-
-
-/* ============================================================
-   0) التوظيف والعروض الوظيفية
-   ============================================================ */
-function jobOfferHijri(v){
-  const d = excelDateToJS(v);
-  if(!d) return '';
-  try{
-    const parts = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
-      day:'2-digit', month:'2-digit', year:'numeric'
-    }).formatToParts(d);
-    const get = t => (parts.find(p=>p.type===t)||{}).value || '';
-    return `${get('day')}/${get('month')}/${get('year')}`;
-  }catch(_){ return ''; }
-}
-function jobOfferNum(v){
-  if(v===undefined || v===null || v==='') return '';
-  const n = Number(v);
-  if(Number.isNaN(n)) return esc(v);
-  return Number.isInteger(n) ? String(n) : String(Math.round(n*100)/100);
-}
-function jobOfferTotal(m){
-  if(m.totalSalary!==undefined && m.totalSalary!==null && m.totalSalary!=='') return jobOfferNum(m.totalSalary);
-  const vals = [m.basicSalary,m.housingAllowance,m.transportAllowance];
-  if(vals.every(v=>v===undefined || v===null || v==='')) return '';
-  return jobOfferNum(vals.reduce((a,v)=>a+num(v),0));
-}
-function jobOfferDate(v){ return v ? fmtDate(v) : '&nbsp;&nbsp;/&nbsp;&nbsp;/&nbsp;&nbsp;'; }
-
-const FORM_JOB_OFFER = {
-  id:'job-offer', cat:'recruitment', titleAr:'عرض وظيفي', standalone:true,
-  manualFields:[
-    {key:'offerDate', label:'تاريخ العرض (ميلادي)', type:'date', default:()=>new Date().toISOString().slice(0,10)},
-    {key:'hijriDate', label:'تاريخ العرض (هجري) — اختياري', type:'text'},
-    {key:'candidateName', label:'الاسم', type:'text'},
-    {key:'nationality', label:'الجنسية', type:'text'},
-    {key:'idNumber', label:'رقم الهوية / الإقامة', type:'text'},
-    {key:'jobTitle', label:'المسمى الوظيفي', type:'text'},
-    {key:'probationDays', label:'فترة التجربة (يوم)', type:'number', default:'90'},
-    {key:'contractDuration', label:'مدة العقد', type:'text', default:'سنة واحدة'},
-    {key:'basicSalary', label:'الراتب الأساسي', type:'number'},
-    {key:'housingAllowance', label:'بدل السكن', type:'number'},
-    {key:'transportAllowance', label:'بدل النقل', type:'number'},
-    {key:'totalSalary', label:'إجمالي الراتب — اتركه فارغاً للحساب التلقائي', type:'number'},
-    {key:'commissionText', label:'بند العمولة', type:'text', default:'عمولة على المبيعات حسب سياسة الشركة'},
-    {key:'transportText', label:'بند النقل', type:'text', default:'تلتزم الشركة بتوفير النقل للموظف'},
-    {key:'medicalInsurance', label:'التأمين الطبي', type:'text', default:'مؤمن'},
-    {key:'annualVacationDays', label:'الإجازة السنوية (يوم)', type:'number', default:'21'},
-    {key:'offerExpiryDate', label:'آخر يوم لقبول العرض', type:'date'},
-    {key:'startDate', label:'أول يوم عمل', type:'date'},
-  ],
-  render(emp,m){
-    const offerDate = m.offerDate || new Date().toISOString().slice(0,10);
-    const hijri = esc(m.hijriDate || jobOfferHijri(offerDate));
-    const total = jobOfferTotal(m);
-    return `
-      <div class="job-offer-doc">
-        <img class="jo-bg" src="assets/job-offer-bg.svg" alt="">
-        <div class="jo-head-logo"><img src="assets/job-offer-logo.png" alt="HAIL HOUSE"></div>
-
-        <div class="jo-titlebar">
-          <div class="jo-title-ar">عرض وظيفي</div>
-          <div class="jo-title-en">Job offer</div>
-        </div>
-
-        <div class="jo-date-row">
-          <div class="jo-date-en">Date : <b>${fmtDate(offerDate)}</b></div>
-          <div class="jo-date-ar"><span>التاريخ :</span> <b>${hijri||'—'}</b></div>
-        </div>
-
-        <table class="jo-table">
-          <colgroup><col class="jo-en-col"><col class="jo-val-col"><col class="jo-ar-col"></colgroup>
-          <tbody>
-            <tr class="jo-section"><td colspan="3">معلومات الموظف</td></tr>
-            <tr><td class="jo-en">Name</td><td class="jo-value">${esc(m.candidateName)}</td><td class="jo-ar">الاسم</td></tr>
-            <tr><td class="jo-en">Nationality</td><td class="jo-value">${esc(m.nationality)}</td><td class="jo-ar">الجنسية</td></tr>
-            <tr><td class="jo-en">ID Number</td><td class="jo-value">${esc(m.idNumber)}</td><td class="jo-ar">رقم الهوية</td></tr>
-          </tbody>
-        </table>
-
-        <table class="jo-table jo-gap-top">
-          <colgroup><col class="jo-en-col"><col class="jo-val-col"><col class="jo-ar-col"></colgroup>
-          <tbody>
-            <tr class="jo-section"><td colspan="3">العقد</td></tr>
-            <tr><td class="jo-en">Job Title</td><td class="jo-value">${esc(m.jobTitle)}</td><td class="jo-ar">المسمى الوظيفي</td></tr>
-            <tr><td class="jo-en">Probation</td><td class="jo-value"><span dir="rtl">${jobOfferNum(m.probationDays||90)}يوم</span></td><td class="jo-ar">فترة التجربة</td></tr>
-            <tr><td class="jo-en">Duration of the contract</td><td class="jo-value">${esc(m.contractDuration||'سنة واحدة')}</td><td class="jo-ar">مدة العقد</td></tr>
-          </tbody>
-        </table>
-
-        <table class="jo-table jo-gap-top">
-          <colgroup><col class="jo-en-col"><col class="jo-val-col"><col class="jo-ar-col"></colgroup>
-          <tbody>
-            <tr class="jo-section"><td colspan="3">مفردات الراتب</td></tr>
-            <tr><td class="jo-en">Basic salary</td><td class="jo-value">${jobOfferNum(m.basicSalary)}</td><td class="jo-ar">الراتب الأساسي</td></tr>
-            <tr><td class="jo-en">Housing allowance</td><td class="jo-value">${jobOfferNum(m.housingAllowance)}</td><td class="jo-ar">بدل السكن</td></tr>
-            <tr><td class="jo-en">Transfer allowance</td><td class="jo-value">${jobOfferNum(m.transportAllowance)}</td><td class="jo-ar">بدل نقل</td></tr>
-            <tr><td class="jo-en">Total salary</td><td class="jo-value">${total}</td><td class="jo-ar">إجمالي الراتب</td></tr>
-          </tbody>
-        </table>
-
-        <div class="jo-benefit-lines">
-          <div>${esc(m.commissionText||'عمولة على المبيعات حسب سياسة الشركة')}</div>
-          <div>${esc(m.transportText||'تلتزم الشركة بتوفير النقل للموظف')}</div>
-        </div>
-
-        <table class="jo-table jo-gap-top jo-benefits-table">
-          <colgroup><col class="jo-en-col"><col class="jo-val-col"><col class="jo-ar-col"></colgroup>
-          <tbody>
-            <tr class="jo-section"><td colspan="3">التأمين الطبي والاجازات</td></tr>
-            <tr><td class="jo-en">Medical Insurance</td><td class="jo-value">${esc(m.medicalInsurance||'مؤمن')}</td><td class="jo-ar">التأمين الطبي</td></tr>
-            <tr><td class="jo-en">Annual vacation</td><td class="jo-value"><span dir="rtl">${jobOfferNum(m.annualVacationDays||21)}يوم</span></td><td class="jo-ar">الاجازة السنوية</td></tr>
-          </tbody>
-        </table>
-
-        <div class="jo-terms">باقي الشروط حسب النظام المتبع بالشركة</div>
-        <div class="jo-expiry">علماً أن آخر يوم لقبول العرض في تاريخ <b>${m.offerExpiryDate?fmtDate(m.offerExpiryDate):'—'}</b></div>
-
-        <div class="jo-accept">
-          موافق على الشروط أعلاه باعتبار أول يوم عمل لي بالشركة يوم
-          <b>${m.startDate?fmtDate(m.startDate):'&nbsp;&nbsp;/&nbsp;&nbsp;/&nbsp;&nbsp;'}</b>
-          <br>وعلى ذلك جرى التوقيع
-        </div>
-
-        <div class="jo-candidate-sign">
-          <div>الاسم : <span>${esc(m.candidateName)}</span></div>
-          <div>التوقيع : <span></span></div>
-          <div>التاريخ : <span></span></div>
-        </div>
-
-        <div class="jo-management-sign">
-          <div class="jo-sign-right">مدير إدارة الموارد البشرية</div>
-          <div class="jo-sign-left">المدير التنفيذي</div>
-        </div>
-      </div>`;
-  }
-};
 
 /* ============================================================
    1) الشهادات والتعريفات
@@ -255,40 +117,320 @@ const FORM_MALAF_MUWAZAF = {
   }
 };
 
+/* أدوات قالب شهادات الراتب المعتمد */
+function sctHeader(co){
+  return `<div class="sct-header"><img src="assets/logo.png" alt=""><div class="name">${co.nameAr}</div></div>`;
+}
+function sctTitle(ar, en){
+  return `<div class="sct-title-band"><div class="ar">${ar}</div><div class="en">${en}</div></div>`;
+}
+function sctDateRow(dateStr){
+  return `<div class="sct-date-row"><span>date: ${dateStr}</span><span>التاريخ : ${dateStr}</span></div>`;
+}
+function sctRow2(enHtml, arHtml, shaded){
+  return `<tr class="${shaded?'shaded':''}"><td class="ltr b" colspan="2" style="width:50%">${enHtml}</td><td class="rtl b" colspan="2" style="width:50%">${arHtml}</td></tr>`;
+}
+function sctRow4(enLabel, enVal, arVal, arLabel, shaded){
+  return `<tr class="${shaded?'shaded':''}">
+    <td class="ltr b" style="width:18%">${enLabel}</td>
+    <td class="ltr ctr" style="width:32%">${enVal}</td>
+    <td class="rtl ctr" style="width:32%">${arVal}</td>
+    <td class="rtl b" style="width:18%">${arLabel}</td>
+  </tr>`;
+}
+function sctTable(rowsHtml){
+  return `<div class="avoid-break"><table class="sct-table" dir="ltr"><tbody>${rowsHtml}</tbody></table></div>`;
+}
+function sctFooterName(html){
+  return `<div class="sct-footer-name">${html}</div>`;
+}
+
+const FORM_TAAREEF_SAFARA = {
+  id:'taareef-safara', cat:'certificates', titleAr:'وثيقة تعريف بموظف (لسفارة)',
+  manualFields:[
+    {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
+    {key:'destinationAr', label:'اسم السفارة (عربي)', type:'text', default:'السفارة'},
+    {key:'destinationEn', label:'Embassy Name (EN)', type:'text', default:'the Embassy'},
+    {key:'salaryText', label:'نص الراتب الشهري (مثال: 25,000 ريال)', type:'text', default: e=> e ? (money(e.total)+' ريال') : ''},
+  ],
+  render(emp, m){
+    const co = companyOf(emp);
+    const dateStr = m.date?fmtDate(m.date):todayStr();
+    return `
+      ${sctHeader(co)}
+      ${sctTitle('وثيقة تعريف بموظف','Staff Identification Document')}
+      ${sctDateRow(dateStr)}
+      ${sctTable(
+        sctRow2(`${co.nameEn} certifies<br>Commercial Registration No.: ${co.cr}`, `تشهد ${co.nameAr}<br>سجل تجاري رقم: ${co.cr}`) +
+        sctRow2(`That Mr: ${esc(emp.nameEn||emp.nameAr)}`, `بأن السيد: ${esc(emp.nameAr)}`, true) +
+        sctRow4('Nationality:', esc(emp.nationalityEn), esc(emp.nationalityAr), 'الجنسية') +
+        sctRow4('passport number:', esc(emp.passportNumber), esc(emp.passportNumber), 'رقم الجواز') +
+        sctRow4('Identification Number:', esc(emp.idNumber), esc(emp.idNumber), 'رقم الهوية:') +
+        sctRow4('Job title:', esc(emp.jobTitleEn||emp.jobTitleAr), esc(emp.jobTitleAr), 'المسمى الوظيفي:') +
+        sctRow4('Joining Date:', fmtDate(emp.joinDate), fmtDate(emp.joinDate), 'تاريخ الالتحاق:') +
+        sctRow2('He works for us under a renewable contract and receives a monthly salary: <b>' + esc(m.salaryText) + '</b>', 'يعمل لدينا بموجب عقد قابل للتجديد ويتقاضى راتباً شهرياً: <b>' + esc(m.salaryText) + '</b>', true) +
+        sctRow2(
+          `This certificate was issued at the employee's request to be submitted to <b>${esc(m.destinationEn)}</b>, without the company being under any responsibility whatsoever.`,
+          `حُررت هذه الشهادة بناءً على طلب الموظف لتقديمها إلى <b>${esc(m.destinationAr)}</b>، وذلك دون أن تكون على الشركة أدنى مسؤولية.`
+        )
+      )}
+      ${sctFooterName(co.nameAr)}
+      ${docFooter(emp)}`;
+  }
+};
+
+const FORM_TAAREEF_RATIB_SAFARAT = {
+  id:'taareef-ratib-safarat', cat:'certificates', titleAr:'تعريف بالراتب (للسفارات)',
+  manualFields:[
+    {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
+    {key:'destinationAr', label:'اسم السفارة (عربي)', type:'text', default:'السفارة'},
+    {key:'destinationEn', label:'Embassy Name (EN)', type:'text', default:'the Embassy'},
+  ],
+  render(emp, m){
+    const co = companyOf(emp);
+    const dateStr = m.date?fmtDate(m.date):todayStr();
+    return `
+      ${sctHeader(co)}
+      ${sctTitle('تعريف بالراتب','Definition of salary')}
+      ${sctDateRow(dateStr)}
+      ${sctTable(
+        sctRow2(`${co.nameEn} certifies<br>Commercial Registration No.: ${co.cr}`, `تشهد ${co.nameAr}<br>سجل تجاري رقم: ${co.cr}`) +
+        sctRow2(`That Mr: ${esc(emp.nameEn||emp.nameAr)}`, `بأن السيد: ${esc(emp.nameAr)}`, true) +
+        sctRow4('Nationality:', esc(emp.nationalityEn), esc(emp.nationalityAr), 'الجنسية') +
+        sctRow4('passport number:', esc(emp.passportNumber), esc(emp.passportNumber), 'رقم الجواز') +
+        sctRow4('Identification Number:', esc(emp.idNumber), esc(emp.idNumber), 'رقم الهوية:') +
+        sctRow4('Job title:', esc(emp.jobTitleEn||emp.jobTitleAr), esc(emp.jobTitleAr), 'المسمى الوظيفي:') +
+        sctRow4('Joining Date:', fmtDate(emp.joinDate), fmtDate(emp.joinDate), 'تاريخ الالتحاق:') +
+        sctRow2('He works for us and receives a monthly salary', 'يعمل لدينا و يتقاضى راتب شهري', true) +
+        sctRow2(`${money(emp.total)} Riyals`, `${money(emp.total)} ريال`) +
+        sctRow2(
+          `This certificate has been issued to the employee at his request for submission to the <b>${esc(m.destinationEn)}</b>.`,
+          `حُررت هذه الشهادة للموظف بناءً على طلبه لتقديمها إلى <b>${esc(m.destinationAr)}</b>.`,
+          true
+        )
+      )}
+      ${sctFooterName(co.nameAr)}
+      ${docFooter(emp)}`;
+  }
+};
+
+const FORM_ADAM_MUMANAA = {
+  id:'adam-mumanaa', cat:'certificates', titleAr:'عدم ممانعة من السفر',
+  manualFields:[
+    {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
+    {key:'destinationCountryAr', label:'الدولة المقصودة (عربي)', type:'text'},
+    {key:'destinationCountryEn', label:'Destination Country (EN)', type:'text'},
+  ],
+  render(emp, m){
+    const co = companyOf(emp);
+    const dateStr = m.date?fmtDate(m.date):todayStr();
+    return `
+      ${sctHeader(co)}
+      ${sctTitle('تعريف بالراتب وتعهد','Definition of salary and pledge')}
+      ${sctDateRow(dateStr)}
+      ${sctTable(
+        sctRow2(`${co.nameEn} certifies<br>Commercial Registration No.: ${co.cr}`, `نحن ${co.nameAr}<br>سجل تجاري رقم: ${co.cr}`) +
+        sctRow2('We have no objection to the travel of Mr:', 'لا مانع لدينا من سفر السيد:', true) +
+        sctRow2(`<b>${esc(emp.nameEn||emp.nameAr)}</b>`, `<b>${esc(emp.nameAr)}</b>`) +
+        sctRow4('Nationality:', esc(emp.nationalityEn), esc(emp.nationalityAr), 'الجنسية') +
+        sctRow4('passport number:', esc(emp.passportNumber), esc(emp.passportNumber), 'رقم الجواز') +
+        sctRow4('Identification Number:', esc(emp.idNumber), esc(emp.idNumber), 'رقم الهوية:') +
+        sctRow4('Job title:', esc(emp.jobTitleEn||emp.jobTitleAr), esc(emp.jobTitleAr), 'المسمى الوظيفي:') +
+        sctRow4('Joining Date:', fmtDate(emp.joinDate), fmtDate(emp.joinDate), 'تاريخ الالتحاق:') +
+        sctRow4('Monthly salary:', money(emp.total)+' SAR', money(emp.total)+' ر.س.', 'الراتب الشهري:') +
+        sctRow2(
+          `To ${esc(m.destinationCountryEn)}.<br>The company assumes responsibility for his return to the Kingdom of Saudi Arabia.`,
+          `إلى ${esc(m.destinationCountryAr)}<br>وتتحمل الشركة مسؤولية عودته للمملكة العربية السعودية`,
+          true
+        )
+      )}
+      ${sctFooterName(`${co.nameAr}<br>${co.nameEn}`)}
+      ${docFooter(emp)}`;
+  }
+};
+
+const FORM_TAAREEF_RATIB = {
+  id:'taareef-ratib', cat:'certificates', titleAr:'تعريف بالراتب',
+  manualFields:[
+    {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
+    {key:'destinationAr', label:'الجهة المقدَّم إليها (عربي)', type:'text', default:'من يهمه الأمر'},
+    {key:'destinationEn', label:'Recipient (EN)', type:'text', default:'whomever it may concern'},
+  ],
+  render(emp, m){
+    const co = companyOf(emp);
+    const dateStr = m.date?fmtDate(m.date):todayStr();
+    return `
+      ${sctHeader(co)}
+      ${sctTitle('تعريف بالراتب','Definition of salary')}
+      ${sctDateRow(dateStr)}
+      ${sctTable(
+        sctRow2(`${co.nameEn} certifies<br>Commercial Registration No.: ${co.cr}`, `تشهد ${co.nameAr}<br>سجل تجاري رقم: ${co.cr}`) +
+        sctRow2(`That Mr: ${esc(emp.nameEn||emp.nameAr)}`, `بأن السيد: ${esc(emp.nameAr)}`, true) +
+        sctRow4('Nationality:', esc(emp.nationalityEn), esc(emp.nationalityAr), 'الجنسية') +
+        sctRow4('Identification Number:', esc(emp.idNumber), esc(emp.idNumber), 'رقم الهوية:') +
+        sctRow4('Job title:', esc(emp.jobTitleEn||emp.jobTitleAr), esc(emp.jobTitleAr), 'المسمى الوظيفي:') +
+        sctRow4('Joining Date:', fmtDate(emp.joinDate), fmtDate(emp.joinDate), 'تاريخ الالتحاق:') +
+        sctRow2('He works for us and receives a monthly salary', 'يعمل لدينا و يتقاضى راتب شهري', true) +
+        sctRow4('basic salary', money(emp.basic), money(emp.basic), 'الراتب الأساسي') +
+        sctRow4('Housing allowance', money(emp.housing), money(emp.housing), 'بدل السكن') +
+        sctRow4('Transportation allowance', money(emp.transport), money(emp.transport), 'بدل النقل') +
+        sctRow4('Other allowances', money(emp.living), money(emp.living), 'بدلات أخرى') +
+        sctRow4('total salary', `<b>${money(emp.total)}</b>`, `<b>${money(emp.total)}</b>`, 'الراتب الإجمالي', true) +
+        sctRow2(
+          `This certificate was issued to the employee at his request to present it to <b>${esc(m.destinationEn)}</b>, without the company bearing any responsibility whatsoever.`,
+          `حُررت هذه الشهادة للموظف بناءً على طلبه لتقديمها إلى <b>${esc(m.destinationAr)}</b>، وذلك دون أن تكون على الشركة أدنى مسؤولية.`,
+          true
+        )
+      )}
+      ${sctFooterName(`${co.nameAr}<br>إدارة الموارد البشرية`)}
+      ${docFooter(emp)}`;
+  }
+};
+
+function makeTathbeetRatibForm(id, titleAr, presetBankAr, presetBankEn){
+  return {
+    id, cat:'certificates', titleAr,
+    manualFields:[
+      {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
+      {key:'destinationBankAr', label:'اسم البنك/الجهة (عربي)', type:'text', default: e=> presetBankAr || e?.bankAr},
+      {key:'destinationBankEn', label:'Bank/Recipient Name (EN)', type:'text', default: e=> presetBankEn || e?.bankEn},
+    ],
+    render(emp, m){
+      const co = companyOf(emp);
+      const dateStr = m.date?fmtDate(m.date):todayStr();
+      return `
+        ${sctHeader(co)}
+        ${sctTitle('تعريف وتثبيت الراتب','Definition and fixation of salary')}
+        ${sctDateRow(dateStr)}
+        ${sctTable(
+          sctRow2(`${co.nameEn} certifies<br>Commercial Registration No.: ${co.cr}`, `تشهد ${co.nameAr}<br>سجل تجاري رقم: ${co.cr}`) +
+          sctRow2(`That Mr: ${esc(emp.nameEn||emp.nameAr)}`, `بأن السيد: ${esc(emp.nameAr)}`, true) +
+          sctRow4('Nationality:', esc(emp.nationalityEn), esc(emp.nationalityAr), 'الجنسية:') +
+          sctRow4('Identification Number:', esc(emp.idNumber), esc(emp.idNumber), 'رقم الهوية:') +
+          sctRow4('Job title:', esc(emp.jobTitleEn||emp.jobTitleAr), esc(emp.jobTitleAr), 'المسمى الوظيفي:') +
+          sctRow4('Joining Date:', fmtDate(emp.joinDate), fmtDate(emp.joinDate), 'تاريخ الالتحاق:') +
+          sctRow4('Bank Name:', esc(emp.bankEn||emp.bankAr), esc(emp.bankAr), 'اسم البنك:') +
+          sctRow4('IBAN Number:', esc(emp.iban), esc(emp.iban), 'رقم الايبان:') +
+          sctRow2('He works for us and receives a monthly salary', 'يعمل لدينا و يتقاضى راتب شهري', true) +
+          sctRow4('basic salary', money(emp.basic), money(emp.basic), 'الراتب الأساسي') +
+          sctRow4('Housing allowance', money(emp.housing), money(emp.housing), 'بدل السكن') +
+          sctRow4('Transportation allowance', money(emp.transport), money(emp.transport), 'بدل النقل') +
+          sctRow4('Other allowances', money(emp.living), money(emp.living), 'بدلات أخرى') +
+          sctRow4('total salary', `<b>${money(emp.total)}</b>`, `<b>${money(emp.total)}</b>`, 'الراتب الإجمالي', true) +
+          sctRow2(
+            `The Company undertakes to transfer the employee's salary and entitlements on their scheduled monthly dates until the termination of their employment relationship with us or until receipt of written notification from you regarding the settlement of their obligations. This certificate has been issued at the employee's request for submission to <u>${esc(m.destinationBankEn)}</u>.`,
+            `وتلتزم الشركة بتحويل رواتب ومستحقات الموظف في مواعيدها الشهرية وحتى نهاية علاقته الوظيفية معنا أو استلام إشعار خطي بانتهاء الالتزامات عليه من قبلكم، وحُررت هذه الشهادة بناءً على طلب الموظف لتقديمها إلى <u>${esc(m.destinationBankAr)}</u>.`,
+            true
+          )
+        )}
+        ${sctFooterName(co.nameAr)}
+        ${docFooter(emp)}`;
+    }
+  };
+}
+const FORM_TAAREEF_TATHBEET_RATIB = makeTathbeetRatibForm('taareef-tathbeet-ratib', 'تعريف وتثبيت الراتب (بنك آخر)', null, null);
+const FORM_TAAREEF_TATHBEET_RIYAD = makeTathbeetRatibForm('taareef-tathbeet-riyad', 'تعريف وتثبيت الراتب - بنك الرياض', 'بنك الرياض', 'Riyad Bank');
+const FORM_TAAREEF_TATHBEET_ALINMA = makeTathbeetRatibForm('taareef-tathbeet-alinma', 'تعريف وتثبيت الراتب - مصرف الإنماء', 'مصرف الإنماء', 'Alinma Bank');
+
+const FORM_TAAREEF_MUWAZAF_EOS = {
+  id:'taareef-muwazaf-eos', cat:'certificates', titleAr:'خطاب تعريف بموظف (مع مكافأة نهاية الخدمة)',
+  manualFields:[
+    {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
+    {key:'to', label:'الجهة الموجَّه إليها الخطاب', type:'text', default:'من يهمه الأمر'},
+    {key:'eosAmount', label:'مكافأة نهاية الخدمة (ر.س)', type:'number'},
+  ],
+  render(emp, m){
+    const co = companyOf(emp);
+    return `
+      ${docHeader(emp, 'خطاب تعريف بموظف', 'Definition of an Employee')}
+      <div class="row">${kv('الرقم الوظيفي', emp.jobNo)}${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}</div>
+      <div class="row">${kv('إلى', m.to)}</div>
+      <div class="bi-row">
+        <div class="ar">تشهد ${co.nameAr} بأن السيد: <b>${esc(emp.nameAr)}</b> (${esc(emp.nameEn||'')}) — إقامة رقم: ${esc(emp.idNumber)} — تاريخ التعيين: ${fmtDate(emp.joinDate)} — الوظيفة: ${esc(emp.jobTitleAr)}.</div>
+        <div class="en">${co.nameEn} certifies that Mr. <b>${esc(emp.nameEn||emp.nameAr)}</b> — ID No.: ${esc(emp.idNumber)} — Date of Hiring: ${fmtDate(emp.joinDate)} — Job: ${esc(emp.jobTitleEn||emp.jobTitleAr)}.</div>
+      </div>
+      <div class="row">${kv('مكافأة نهاية الخدمة المستحقة', money(m.eosAmount))}</div>
+      <div class="bi-row">
+        <div class="ar">ولا يزال يعمل لدينا حتى تاريخ كتابة هذا الخطاب، ويُجدَّد عقده تلقائياً. وقد تم منحه هذه الشهادة بناءً على طلبه، دون أن تتحمل ${co.nameAr} أدنى مسؤولية تجاه حقوق الغير.</div>
+        <div class="en">He remains employed by us as of the date of this letter, and his contract is renewed automatically. This certificate was granted to him at his request; ${co.nameEn} assumes no liability whatsoever towards the rights of third parties.</div>
+      </div>
+      <div class="sign-grid two" style="margin-top:60px">${signBox('إدارة الموارد البشرية')}${signBox('ختم الشركة')}</div>
+      ${docFooter(emp)}`;
+  }
+};
+
 /* ============================================================
    2) عقود العمل
    ============================================================ */
 const CONTRACT_OBLIGATIONS = [
-  ["8.1","تقديم الرعاية الطبية للطرف الثاني بالتأمين الصحي وفقاً لأحكام نظام الضمان الصحي التعاوني","Providing the second party with health care in accordance with the Cooperative Health Insurance Law"],
-  ["8.2","تسجيل الطرف الثاني لدى المؤسسة العامة للتأمينات الاجتماعية، وسداد الاشتراكات حسب أنظمتها","Registering the second party with GOSI and paying contributions accordingly"],
-  ["8.3","منح الطرف الثاني الإجازات السنوية والعطل الرسمية والإجازات المرضية وفق لائحة تنظيم العمل المعتمدة من وزارة الموارد البشرية والتنمية الاجتماعية","Granting the second party annual leave, official holidays and sick leave as required by the approved labor regulations"],
-  ["8.4","أن يعيد إلى الطرف الثاني جميع ما أودعه لديه من شهادات أو وثائق","Returning to the second party all certificates or documents submitted"],
-  ["8.5","دفع أجر الطرف الثاني وتصفية حقوقه خلال أسبوع على الأكثر من تاريخ انتهاء العلاقة العقدية، وإذا كان العامل هو من أنهى العقد فخلال مدة لا تزيد على أسبوعين","Paying the second party's wages and settling entitlements within one week (or two weeks if the worker ends the contract) from the end of the contractual relation"],
+  ["8.1","Providing the second party with health care in accordance with the rules and regulations of Cooperative Health Insurance Law","تقديم الرعاية الطبية للطرف الثاني بالتأمين الصحي وفقا لأحكام نظام الضمان الصحي التعاوني"],
+  ["8.2","Registering the second party in General Organization for Social Insurance (GOSI) and fulfill the payments of contributions according to their systems","تسجيل الطرف الثاني لدى المؤسسة العامة للتأمينات الاجتماعية، وسداد الاشتراكات حسب أنظمتها"],
+  ["8.3","Granting the second party annual leave, official holidays and sick leave as required by the labor regulations approved by the Ministry of Human Resources and Social Development","منح الطرف الثاني الاجازات السنوية والعطل الرسمية والاجازات المرضية وفق ماتقتضية لائحة تنظيم العمل المعتمدة من وزارة الموارد البشرية والتنمية الاجتماعية، بما لايتعارض مع نظام العمل ولائحته التنفيذية"],
+  ["8.4","Returning to the second party all certificates or documents that has been submitted","أن يعيد إلى الطرف الثاني جميع ما أودعه لديه من شهادات أو وثائق"],
+  ["8.5","Paying the first party's wages and settle his entitlements within a maximum period of one week from the date of the end of the contractual relation. If the worker ends the contract, the employer shall settle all his entitlements within a period not exceeding two weeks","دفع أجر العامل وتصفية حقوقه خلال أسبوع -على الأكثر- من تاريخ انتهاء العلاقة العقدية. أما إذا كان العامل هو الذي أنهى العقد، وجب على صاحب العمل تصفية حقوقه كاملة خلال مدة لا تزيد على أسبوعين"],
 ];
 const CONTRACT_DUTIES = [
-  ["9.1","إنجاز العمل الموكل إليه وفقاً لأصول المهنة وتعليمات الطرف الأول، ما لم تخالف النظام أو الآداب العامة","Performing assigned work per professional standards and the first party's instructions"],
-  ["9.2","العناية الكافية بالأدوات والمهمات المسندة إليه، وإعادة المواد غير المستهلكة للطرف الأول","Adequately caring for tools and tasks assigned, and returning unconsumed materials"],
-  ["9.3","الموافقة على استقطاع النسبة المقررة من الأجر الشهري للاشتراك في التأمينات الاجتماعية","Approving the deduction of the prescribed GOSI percentage from the monthly wage"],
-  ["9.4","الالتزام بحسن السلوك والأخلاق والأنظمة والأعراف المرعية في المملكة وقواعد الطرف الأول، وتحمل أي غرامات ناتجة عن المخالفة","Committing to good conduct and all applicable regulations, and bearing any resulting fines"],
-  ["9.5","تقديم كل عون ومساعدة دون أجر إضافي في حالات الكوارث والأخطار التي تهدد سلامة مكان العمل","Providing assistance without extra pay during disasters or safety threats"],
-  ["9.6","الخضوع للفحوصات الطبية التي يطلبها صاحب العمل للتحقق من الخلو من الأمراض المهنية أو السارية","Undergoing medical examinations requested by the employer"],
+  ["9.1","Finish assigned work in accordance with the principles of the profession and in accordance with the instructions of the employer, if these instructions do not violate the contract, order, public morals, or has a potential danger","إنجاز العمل الموكل إليه؛ وفقا لأصول المهنة، ووفق تعليمات الطرف الأول، إذا لم يكن في هذه التعليمات ما يخالف العقد، أو النظام، او الآداب العامة، ولم يكن في تنفيذها ما يعرضها للخطر"],
+  ["9.2","To take adequate care of the tools and tasks assigned and the first party's materials at the second party's disposal or in his custody, and restore the first party's unconsumed materials","أن يعتني عناية كافية بالأدوات، والمهمات المسندة إليه والخامات المملوكة للطرف الأول؛ الموضوعة تحت تصرفه، أو التي تكون في عهدته، وأن يعيد الى الطرف الأول المواد غير المستهلكة"],
+  ["9.3","Approval of the first party deducting the prescribed percentage from him/her from the monthly wage to participate in the General Organization for Social Insurance","الموافقة على استقطاع الطرف الأول للنسبة المقررة عليه من الأجر الشهري للاشتراك في المؤسسة العامة للتأمينات الاجتماعية"],
+  ["9.4","Committing to good behavior at work and at all times committing to law, rules, and etiquette in the Kingdom of Saudi Arabia, as well as rules and regulations enforced by the first party, and bearing all fines resulting from breaching those regulations","أن يلتزم حسن السلوك والأخلاق أثناء العمل، وفي جميع الأوقات يلتزم بالأنظمة، والأعراف، والعادات، والآداب المرعية في المملكة العربية السعودية وكذلك بالقواعد واللوائح والتعليمات المعمول بها لدى الطرف الأول، ويتحمل الطرف الثاني كامل الغرامات المالية الناتجة عن مخالفته لتلك الانظمة"],
+  ["9.5","To provide all assistance and support without requiring additional wages in the event of disasters and threats to the safety of the place of work or the people working in it","أن يقدم كل عون ومساعدة دون أن يشترط لذلك أجرا إضافيا في حالات الكوارث والأخطار التي تهدد سلامة مكان العمل أو الأشخاص العاملين فيه"],
+  ["9.6","To undergo medical examination according to the first party's request prior to or during the course of work in order to ascertain whether he or she is free of chronic or occupational diseases","أن يخضع -وفق لطلب صاحب العمل- للفحوص الطبية التي يرغب في إجرائها عليه قبل الإلحاق بالعمل او أثناءه للتحقق من خلوه من الأمراض المهنية أو السارية"],
 ];
 const CONTRACT_GENERAL = [
-  ["10.1","يكون نظام العمل ولائحته التنفيذية والقرارات الوزارية المرجع فيما لم يرد به نص بهذا العقد، ويحل هذا العقد محل كافة الاتفاقيات السابقة","The Labor Law and its regulations shall govern any matter not covered herein; this contract replaces all prior agreements"],
-  ["10.2","العناوين الموضحة في صدر العقد هي العناوين النظامية لتبادل الإشعارات وتعتبر المخاطبات ذات حجة نظامية","The addresses stated herein are the official addresses for notifications"],
-  ["10.3","يقر الطرفان بأنهما قد علما وفهما كل أحكام هذا العقد ومضمونه","Both parties acknowledge understanding all provisions of this contract"],
+  ["10.1","The Labor Law and its executive regulations and the ministerial regulations and resolutions and the organization's work regulation approved by the Ministry of Human Resources and Social Development, shall be the reference in all matters not explicitly stated herein, and it shall be deemed as an integral part of this Contract. In addition, this Contract replaces all previous agreements and contracts including oral or written if any","كون نظام العمل ولائحته التنفيذية واللوائح والقرارات الوزارية ولائحة تنظيم العمل بالمنشأة المعتمدة من قبل وزارة الموارد البشرية والتنمية الاجتماعية، المرجع في أي بند أو أمر لم يرد به نص بهذا العقد وتعد جزءا لا يتجزأ من العقد، ويحل هذا العقد محل كافة الاتفاقيات والعقود السابقة الشفهية منها أو الكتابية إن وجدت"],
+  ["10.2","Both parties agreed that the addresses stated at the head of this Contract are the official addresses for exchanging notifications, announcements and warnings and the correspondence is considered a legal argument","اتفق الطرفان على أن العناوين الموضحة في صدر العقد هي العناوين النظامية لتبادل الإشعارات والإخطارات والإنذارات وتعتبر المخاطبات ذات حجة نظامية"],
+  ["10.3","Both parties acknowledge that they have known and understood all the provisions and contents of this contract","يقر الطرفان بانهما قد علما وفهما كل أحكام هذا العقد ومضمونه"],
+  ["10.4","The singular form includes the plural and the plural form includes the singular, and the reference to one gender means both genders, and the reference to persons includes natural and legal persons unless the context of the text requires otherwise","صيغة المفرد تشمل الجمع وصيغة الجمع تشمل المفرد، والإشارة إلى جنس واحد تعني الجنسين والإشارة إلى الأشخاص تشمل الأشخاص الطبيعيين والاعتباريين ما لم يقتض سياق النص غير ذلك"],
+  ["10.5","References to any law, regulation, decision, or instructions shall be interpreted as including amendments that may occur to them from time to time","تفسر الإشارة إلى أي نظام أو لائحة أو قرار أو تعليمات على أنها تشمل التعديلات التي تطرأ عليها من حين لآخر"],
 ];
 const CONTRACT_ADDITIONAL = [
-  ["11.1","يتجدد هذا العقد تلقائياً لمدة مماثلة ما لم يُشعر أحد الطرفين بعدم رغبته بالتجديد قبل 60 يوماً من نهاية العقد","This contract renews automatically unless either party gives 60 days' notice of non-renewal"],
-  ["11.2","يجوز لأي من الطرفين إنهاء العقد بموجب إشعار كتابي للطرف الآخر قبل 60 يوماً أو دفع راتب شهرين","Either party may terminate the contract with 60 days' written notice or payment of two months' salary"],
+  ["11.1","The contract shall be automatically renewed for an equivalent period, unless at least 60 days prior to the contract end date a notice is given by either party of its intent not to renew the contract","يتجدد هذا العقد تلقائيا لمدة مماثلة، مالم يشعر أحد الأطراف بعدم رغبته بالتجديد بمدة لا تقل عن 60 يوم من نهاية العقد"],
+  ["11.2","Either party to the contract may terminate it based on a reason that must be indicated by a written notice to the other party 60 days before the termination, or payment of two months' salary","يجوز لأي من طرفي العقد إنهاء العقد بناء على سبب يجب بيانه بموجب إشعار يوجه إلى الطرف الآخر كتابة قبل 60 يوماً من الإنهاء، أو دفع راتب شهرين"],
 ];
 
-function renderClauseList(list){
-  return list.map(([num,ar,en])=>`
-    <div class="bi-row">
-      <div class="ar"><span style="color:var(--sand);font-weight:800">${num}</span> ${ar}</div>
-      <div class="en">${en}</div>
-    </div>`).join('');
+/* أدوات بناء جدول العقد المرآتي (إنجليزي/عربي) بنفس شكل قالب الشركة الأصلي */
+function ctLogo(){
+  return `<div style="margin-bottom:10px"><img src="assets/logo.png" style="height:44px"></div>`;
+}
+function ctHeadRow(en, ar){
+  return `<tr class="ct-head"><th colspan="2" style="width:50%">${en}</th><th colspan="2" style="width:50%">${ar}</th></tr>`;
+}
+function ctRow2(enHtml, arHtml){
+  return `<tr><td class="ltr" colspan="2">${enHtml}</td><td class="rtl" colspan="2">${arHtml}</td></tr>`;
+}
+function ctRow4(enLabel, enVal, arVal, arLabel){
+  return `<tr>
+    <td class="ct-label ltr" style="width:16%">${enLabel}</td>
+    <td class="ltr ctr" style="width:34%">${enVal}</td>
+    <td class="rtl ctr" style="width:34%">${arVal}</td>
+    <td class="ct-label rtl" style="width:16%">${arLabel}</td>
+  </tr>`;
+}
+function ctClause(num, enText, arText){
+  return `<tr>
+    <td class="ct-num">${num}</td>
+    <td class="ltr" style="width:41%">${enText}</td>
+    <td class="rtl" style="width:41%">${arText}</td>
+    <td class="ct-num">${num}</td>
+  </tr>`;
+}
+function ctTable(rowsHtml){
+  return `<div class="avoid-break"><table class="ct-table" dir="ltr"><tbody>${rowsHtml}</tbody></table></div>`;
+}
+function ctPageBreakTable(rowsHtml){
+  return `<div class="avoid-break" style="page-break-before:always">${ctLogo()}<table class="ct-table" dir="ltr"><tbody>${rowsHtml}</tbody></table></div>`;
+}
+function ctTableLoose(rowsHtml){
+  return `<div class="avoid-break"><table class="ct-table" dir="ltr"><tbody>${rowsHtml}</tbody></table></div>`;
+}
+function ctPlainTitle(en, ar){
+  return `<div class="ct-plain-title" dir="ltr"><span>${en}</span><span>${ar}</span></div>`;
+}
+
+function ctPageWrap(innerHtml, isLast){
+  const breakStyle = isLast ? '' : 'page-break-after:always;break-after:page;';
+  return `<div class="ct-page" style="${breakStyle}overflow:hidden;">${innerHtml}</div>`;
 }
 
 function renderEmploymentContract(emp, m, opts){
@@ -296,55 +438,145 @@ function renderEmploymentContract(emp, m, opts){
   const co = companyOf(emp);
   const start = m.startDate || emp.contractStart;
   const end = m.endDate || emp.contractEnd;
-  return `
-    <div class="doc-header"><img src="assets/logo.png"><div class="co-name">${co.nameAr}<br>${co.nameEn}</div></div>
-    <div class="doc-title"><h1>عقد عمل</h1><h2>Employment Contract</h2></div>
-    <div class="bi-row">
-      <div class="ar">أُبرم هذا العقد في: <b>${m.contractDate?fmtDate(m.contractDate):todayStr()}</b> بين: <br><b>${co.nameAr}</b><br>رقم المنشأة في التأمينات الاجتماعية: ${co.gosi} — سجل تجاري رقم: ${co.cr}<br>يمثلها في توقيع هذا العقد: ${esc(m.signatory||'سليمان ناصر الحمد')} بصفته: ${esc(m.signatoryTitle||'وكيل')}<br>ويشار إليه فيما بعد بـ(الطرف الأول)</div>
-      <div class="en">This Agreement was made on: <b>${m.contractDate?fmtDate(m.contractDate):todayStr()}</b> between:<br><b>${co.nameEn}</b><br>GOSI No.: ${co.gosi} — CR No.: ${co.cr}<br>Represented by: ${esc(m.signatory||'SLYMAN NASSER ALHAMAD')}, Capacity: ${esc(m.signatoryTitle||'Representative')}<br>Referred to as (First Party)</div>
-    </div>
-    <div class="bi-row">
-      <div class="ar">وبين: <b>${esc(emp.nameAr)}</b> — الجنسية: ${esc(emp.nationalityAr)} — رقم الهوية: ${esc(emp.idNumber)} — الرقم الوظيفي: ${esc(emp.jobNo)}<br>ويشار إليه فيما بعد بـ(الطرف الثاني)</div>
-      <div class="en">And: <b>${esc(emp.nameEn||emp.nameAr)}</b> — Nationality: ${esc(emp.nationalityEn)} — ID: ${esc(emp.idNumber)} — Job No.: ${esc(emp.jobNo)}<br>Referred to as (Second Party)</div>
-    </div>
-    <div class="section-title">بنود العقد / Contract Terms</div>
-    <div class="bi-row"><div class="ar"><b>1. المهنة ومكان العمل</b><br>المسمى الوظيفي: ${esc(emp.jobTitleAr)} — مقر العمل: ${esc(emp.workLocationAr)} — نطاق العمل: داخل المملكة — نوع العمل: دوام كامل</div>
-      <div class="en"><b>1. Job Title & Location</b><br>Title: ${esc(emp.jobTitleEn||emp.jobTitleAr)} — Location: ${esc(emp.workLocationEn||emp.workLocationAr)} — Domain: Inside Saudi Arabia — Type: Full Time</div></div>
-    <div class="bi-row"><div class="ar"><b>2. مدة العقد</b><br>يسري هذا العقد لمدة ${esc(m.durationAr||'سنة')} تبدأ من ${fmtDate(start)} وتنتهي في ${fmtDate(end)}</div>
-      <div class="en"><b>2. Contract Period</b><br>Effective for ${esc(m.durationEn||'one year')} from ${fmtDate(start)} to ${fmtDate(end)}</div></div>
-    <div class="bi-row"><div class="ar"><b>3. فترة التجربة</b><br>يخضع الطرف الثاني لفترة تجربة مدتها ${esc(m.probationDays||90)} يوماً تبدأ من تاريخ مباشرته للعمل، ولا يدخل في حسابها إجازة عيدي الفطر والأضحى والإجازة المرضية</div>
-      <div class="en"><b>3. Probationary Period</b><br>${esc(m.probationDays||90)} days from the start date, excluding Eid holidays and sick leave</div></div>
-    <div class="bi-row"><div class="ar"><b>4. ساعات العمل والراحة الأسبوعية</b><br>6 أيام عمل أسبوعياً، 8 ساعات يومياً، ويوم راحة أسبوعي واحد</div>
-      <div class="en"><b>4. Work Hours & Weekly Rest</b><br>6 working days/week, 8 hours/day, one rest day per week</div></div>
-    <div class="bi-row"><div class="ar"><b>5. الإجازات السنوية</b><br>يحق للطرف الثاني إجازة سنوية مدفوعة الأجر مدتها ${esc(emp.annualLeave||21)} يوماً تقويمياً عن كل عام</div>
-      <div class="en"><b>5. Annual Leave</b><br>${esc(emp.annualLeave||21)} paid calendar days per year</div></div>
-    <div class="avoid-break">
-    <div class="section-title">6. الأجر والمزايا المالية / Wages & Benefits</div>
-    <table class="doc-table"><thead><tr><th>البند</th><th>المبلغ (ر.س)</th></tr></thead>
-      <tbody>
-        <tr><td>الأجر الأساسي</td><td>${money(emp.basic)}</td></tr>
-        <tr><td>بدل السكن</td><td>${money(emp.housing)}</td></tr>
-        <tr><td>بدل النقل</td><td>${money(emp.transport)}</td></tr>
-        <tr><td>بدل غلاء المعيشة</td><td>${money(emp.living)}</td></tr>
-        <tr><td><b>الإجمالي شهرياً</b></td><td><b>${money(emp.total)}</b></td></tr>
-      </tbody></table>
-    </div>
-    ${opts.commission ? `<div class="bi-row"><div class="ar"><b>6.1 العمولة</b><br>${esc(m.commissionText||'يستحق الطرف الثاني عمولة إضافية وفق نظام العمولات المعتمد لدى الطرف الأول، وتحتسب وتصرف شهرياً حسب تحقق الشروط.')}</div><div class="en"><b>6.1 Commission</b><br>${esc(m.commissionTextEn||"The second party is entitled to additional commission per the employer's approved commission scheme, calculated and paid monthly upon meeting the conditions.")}</div></div>` : ''}
-    <div class="bi-row"><div class="ar"><b>7. الحساب البنكي</b><br>اسم البنك: ${esc(emp.bankAr)} — رقم الآيبان: ${esc(emp.iban)}</div>
-      <div class="en"><b>7. Bank Account</b><br>Bank: ${esc(emp.bankEn||emp.bankAr)} — IBAN: ${esc(emp.iban)}</div></div>
-    <div class="section-title">8. التزامات الطرف الأول / First Party's Obligations</div>
-    ${renderClauseList(CONTRACT_OBLIGATIONS)}
-    <div class="section-title">9. التزامات الطرف الثاني / Second Party's Obligations</div>
-    ${renderClauseList(CONTRACT_DUTIES)}
-    <div class="section-title">10. أحكام عامة / General Provisions</div>
-    ${renderClauseList(CONTRACT_GENERAL)}
-    <div class="section-title">11. بنود إضافية / Additional Terms</div>
-    ${renderClauseList(CONTRACT_ADDITIONAL)}
-    <div class="sign-grid two" style="margin-top:50px">
-      <div class="sign-box"><div class="line">${co.nameAr}<br>${esc(m.signatory||'سليمان ناصر الحمد')}</div></div>
-      <div class="sign-box"><div class="line">${esc(emp.nameAr)}<br>${esc(emp.nameEn||'')}</div></div>
-    </div>
-    ${docFooter(emp)}`;
+  const signatory = esc(m.signatory || 'سليمان ناصر الحمد');
+  const signatoryEn = esc(m.signatory || 'SLYMAN NASSER ALHAMAD');
+  const signatoryTitle = esc(m.signatoryTitle || 'وكيل');
+  const signatoryTitleEn = esc(m.signatoryTitle || 'Representative');
+  const dateStr = m.contractDate ? fmtDate(m.contractDate) : todayStr();
+
+  let page1 = ctLogo();
+  page1 += ctTable(
+    ctRow2(
+      `This Agreement was made in <b>${dateStr}</b> between:`,
+      `أبرم هذا العقد في: <b>${dateStr}</b> بين:`
+    ) +
+    ctRow2(
+      `<b>${co.nameEn}</b><br>Establishment Number in General Organization for Social Insurance: ${co.gosi}<br>Establishment Number in Ministry of Labor: ${co.cr}<br>Authorized Signatory: ${signatoryEn}<br>Capacity of: ${signatoryTitleEn}<br>Referred to hereinafter as (First Party).`,
+      `<b>${co.nameAr}</b><br>رقم المنشأة في المؤسسة العامة للتأمينات الاجتماعية: ${co.gosi}<br>سجل تجاري رقم: ${co.cr}<br>يمثلها في توقيع هذا العقد: ${signatory}<br>بصفته: ${signatoryTitle}<br>يشار إليه فيما بعد (بالطرف الأول).`
+    ) +
+    ctRow4('And:', esc(emp.nameEn||emp.nameAr), esc(emp.nameAr), 'وبين :') +
+    ctRow4('Nationality', esc(emp.nationalityEn), esc(emp.nationalityAr), 'الجنسية:') +
+    ctRow4('National ID', esc(emp.idNumber), esc(emp.idNumber), 'رقم الهوية') +
+    ctRow4('Job Number', esc(emp.jobNo), esc(emp.jobNo), 'الرقم الوظيفي') +
+    ctRow2('Referred to hereinafter as (Second Party).', 'ويشار إليه فيما بعد (بالطرف الثاني).') +
+    ctRow2('And together they are referred to as (the two parties or both parties).', 'ويشار لهما معاً بـ (الطرفين أو الطرفان).') +
+    ctRow2(
+      'The above Parties details shall be deemed as an integral part of this Contract, and together with its Annexes, they form an integrated unit and are considered part of the contract to be interpreted and complemented by each other.',
+      'تعتبر بيانات الطرفين أعلاه جزءاً لا يتجزأ من هذا العقد، وتشكل مع ملاحقه وحدة متكاملة وتعتبر جزءاً من العقد بحيث تفسر ويتمم بعضها بعضاً.'
+    )
+  );
+  page1 += ctTable(
+    ctHeadRow("First Party's Information", 'بيانات الطرف الأول') +
+    ctRow4('National Address:', co.addressEn.replace(/\n/g,'<br>'), co.addressAr.replace(/\n/g,'<br>'), ':العنوان الوطني') +
+    ctRow4('Email:', 'info2@hail-house.sa', 'info2@hail-house.sa', ':البريد الالكتروني')
+  );
+  page1 += ctTable(
+    ctHeadRow("Second Party's Information", 'بيانات الطرف الثاني') +
+    ctRow4('Gender:', esc(emp.genderEn), esc(emp.genderAr), ':الجنس') +
+    ctRow4('Birth Date:', fmtDate(emp.birthDate), fmtDate(emp.birthDate), ':تاريخ الميلاد') +
+    ctRow4('Religion:', esc(emp.religionEn), esc(emp.religionAr), ':الديانة') +
+    ctRow4('Contact Number:', esc(emp.phone), esc(emp.phone), ':رقم التواصل') +
+    ctRow4('E-mail:', esc(emp.email), esc(emp.email), ':البريد الالكتروني')
+  );
+
+  let page2 = ctLogo();
+  page2 += ctPlainTitle('Contract Terms', 'بنود العقد');
+  page2 += ctTable(
+    ctHeadRow("1. Job's Title & Work's Location", 'المهنة ومكان العمل .1') +
+    ctRow4('Job Title:', esc(emp.jobTitleEn||emp.jobTitleAr), esc(emp.jobTitleAr), ':المسمى الوظيفي') +
+    ctRow4('Work Location:', esc(emp.workLocationEn||emp.workLocationAr), esc(emp.workLocationAr), ': مقر العمل') +
+    ctRow4('Work Domain:', 'Inside Saudi Arabia', 'داخل المملكة', ':نطاق العمل') +
+    ctRow4('Work Type:', 'Full Time', 'دوام كامل', ':نوع العمل')
+  );
+  page2 += ctTable(
+    ctHeadRow("2. Contract's Period", 'مدة العقد .2') +
+    ctRow2(
+      `The contract shall be effective for a period of <b>${esc(m.durationEn||'One year')}</b> which starts from the joining date on`,
+      `يسري نفاذ هذا العقد لمدة <b>${esc(m.durationAr||'سنة')}</b> تبدأ من تاريخ مباشرة الطرف الثاني للعمل`
+    ) +
+    ctRow2(`FROM <b>${fmtDate(start)}</b> TO <b>${fmtDate(end)}</b>`, `من تاريخ <b>${fmtDate(start)}</b> الى تاريخ <b>${fmtDate(end)}</b>`)
+  );
+  page2 += ctTable(
+    ctHeadRow('3. Probationary Period', 'فترة التجربة .3') +
+    ctRow2(
+      `The second party shall be under probationary period of <b>${esc(m.probationDays||90)} days</b> beginning from the official date of reporting to work and it does not include Eid AL-FITR holiday nor Eid AL-ADHA holiday nor sick leaves.`,
+      `يخضع الطرف الثاني لفترة تجربة مدتها <b>${esc(m.probationDays||90)} يوم</b> تبدأ من تاريخ مباشرته للعمل ولا يدخل في حسابها إجازة عيدي الفطر والأضحى والإجازة المرضية.`
+    )
+  );
+  page2 += ctTable(
+    ctHeadRow('4. Work Hours & Weekly Rest', 'ساعات العمل والراحة الأسبوعية .4') +
+    ctRow2(
+      'Normal working days shall be 6 days per week and working hours shall be 8 hours (DAILY). In addition, the second party shall be entitled to 1 day rest per week. Working days and working times are determined by the employer.',
+      'تحدد أيام العمل العادية بـ 6 أيام في الأسبوع وتحدد ساعات العمل اليومية بـ 8 ساعات في اليوم. ويحق للطرف الثاني يوم راحة واحد في الأسبوع، وتحدد أيام العمل وأوقات العمل من قبل صاحب العمل.'
+    )
+  );
+  page2 += ctTable(
+    ctHeadRow('4. Work Hours & Weekly Rest', 'ساعات العمل والراحة الأسبوعية .4') +
+    ctRow2(
+      'Normal working days shall be 6 days per week and working hours shall be 8 hours (DAILY). In addition, the second party shall be entitled to 1 day rest per week. Working days and working times are determined by the employer.',
+      'تحدد أيام العمل العادية بـ 6 أيام في الأسبوع وتحدد ساعات العمل اليومية بـ 8 ساعات في اليوم. ويحق للطرف الثاني يوم راحة واحد في الأسبوع، وتحدد أيام العمل وأوقات العمل من قبل صاحب العمل.'
+    )
+  );
+  page2 += ctTable(
+    ctHeadRow('5. Annual Leave', 'الاجازات السنوية .5') +
+    ctRow2(
+      `The second party shall be entitled to a paid vacation of <b>${esc(emp.annualLeave||21)}</b> calendar days, each year.`,
+      `يحق للطرف الثاني عن كل عام إجازة سنوية مدفوعة الاجر مدتها <b>${esc(emp.annualLeave||21)}</b> يوم تقويمي.`
+    )
+  );
+  page2 += ctTable(
+    ctHeadRow('6. Wages & Financial Benefits', 'الاجر والمزايا المالية .6') +
+    ctRow2('The second party shall be given the following wage and benefits:', 'يستحق الطرف الثاني الأجر والبدلات والمزايا التالية:') +
+    ctRow4('Basic Wage:', money(emp.basic), money(emp.basic), ':الاجر الأساسي') +
+    ctRow4('Housing:', money(emp.housing), money(emp.housing), ':بدل السكن') +
+    ctRow4('Transportation allowance:', money(emp.transport), money(emp.transport), ':بدل النقل') +
+    ctRow4('Cost of living allowance:', money(emp.living), money(emp.living), ':بدل غلاء معيشة') +
+    (opts.commission ? ctRow2(
+      esc(m.commissionTextEn || "The second party is entitled to additional commission per the employer's approved commission scheme, calculated and paid monthly upon meeting the conditions."),
+      esc(m.commissionText || 'يستحق الطرف الثاني عمولة إضافية وفق نظام العمولات المعتمد لدى الطرف الأول، وتحتسب وتصرف شهرياً حسب تحقق الشروط.')
+    ) : '') +
+    ctRow2(
+      `The first party pays the second party each month a total amount of <b>${money(emp.total)}</b> Saudi riyals.`,
+      `يدفع الطرف الأول للطرف الثاني اجراً قدره <b>${money(emp.total)}</b> ريال سعودي فقط نهاية كل شهر.`
+    )
+  );
+  page2 += ctTable(
+    ctHeadRow("7. Second Party's Bank Account Information", 'معلومات الحساب البنكي للطرف الثاني .7') +
+    ctRow4('Bank Name:', esc(emp.bankEn||emp.bankAr), esc(emp.bankAr), ': اسم البنك') +
+    ctRow4('IBAN:', esc(emp.iban), esc(emp.iban), ':رقم الايبان')
+  );
+  page2 += ctTable(
+    ctHeadRow("8. First Party's Obligations", 'التزامات الطرف الأول .8') +
+    CONTRACT_OBLIGATIONS.map(([n,en,ar])=>ctClause(n,en,ar)).join('')
+  );
+
+  let page3 = ctLogo();
+  page3 += ctTable(
+    ctHeadRow("9. Second Party's Obligations", 'التزامات الطرف الثاني .9') +
+    CONTRACT_DUTIES.map(([n,en,ar])=>ctClause(n,en,ar)).join('')
+  );
+  page3 += ctTable(
+    ctHeadRow('10. General Provisions', 'أحكام عامة .10') +
+    CONTRACT_GENERAL.slice(0,3).map(([n,en,ar])=>ctClause(n,en,ar)).join('')
+  );
+
+  let page4 = ctLogo();
+  page4 += ctTable(
+    CONTRACT_GENERAL.slice(3).map(([n,en,ar])=>ctClause(n,en,ar)).join('')
+  );
+  page4 += ctTable(
+    ctHeadRow('11. Additional Terms', 'بنود إضافية .11') +
+    CONTRACT_ADDITIONAL.map(([n,en,ar])=>ctClause(n,en,ar)).join('')
+  );
+  page4 += `<div style="height:24px"></div>`;
+  page4 += ctTableLoose(
+    `<tr class="ct-head"><th style="width:50%">${co.nameAr}</th><th style="width:50%">اسم الموظف</th></tr>` +
+    `<tr><td class="rtl ctr">${signatory}</td><td class="rtl ctr">${esc(emp.nameAr)}</td></tr>` +
+    `<tr><td class="ltr ctr">${signatoryEn}</td><td class="ltr ctr">${esc(emp.nameEn||'')}</td></tr>` +
+    `<tr><td style="height:50px"></td><td></td></tr>`
+  );
+
+  return ctPageWrap(page1, false) + ctPageWrap(page2, false) + ctPageWrap(page3, false) + ctPageWrap(page4, true);
 }
 
 const CONTRACT_MANUAL_FIELDS = [
@@ -357,6 +589,93 @@ const CONTRACT_MANUAL_FIELDS = [
   {key:'signatory', label:'اسم المفوض بالتوقيع', type:'text', default:'سليمان ناصر الحمد'},
   {key:'signatoryTitle', label:'صفة المفوض', type:'text', default:'وكيل'},
 ];
+
+/* ============================================================
+   الوصف الوظيفي
+   ============================================================ */
+function jdListToItems(text){
+  return (text||'').split('\n').map(s=>s.trim()).filter(Boolean);
+}
+function jdNumList(text){
+  const items = jdListToItems(text);
+  if(!items.length) return '<p class="jd-empty">لم تُذكر بنود بعد</p>';
+  return `<ol class="jd-num-list">${items.map((it,i)=>`<li><b>${i+1}</b><span>${esc(it)}</span></li>`).join('')}</ol>`;
+}
+function jdReqList(text){
+  const items = jdListToItems(text);
+  if(!items.length) return '<p class="jd-empty">لم تُذكر متطلبات بعد</p>';
+  return `<ul class="jd-req-list">${items.map(it=>`<li>${esc(it)}</li>`).join('')}</ul>`;
+}
+
+const FORM_JOB_DESCRIPTION = {
+  id:'job-description', cat:'jobdesc', titleAr:'الوصف الوظيفي',
+  standalone:true,
+  manualFields:[
+    {key:'company', label:'الشركة', type:'select', options:Object.keys(COMPANIES), default:'بيت هايل لمواد البناء'},
+    {key:'jobTitleAr', label:'المسمى الوظيفي (عربي)', type:'text'},
+    {key:'jobTitleEn', label:'Job Title (EN)', type:'text'},
+    {key:'department', label:'القسم', type:'text'},
+    {key:'admin', label:'الإدارة', type:'text', default:'حسب الهيكل التنظيمي المعتمد'},
+    {key:'directManager', label:'الرئيس المباشر', type:'text', default:'حسب ما تحدده الإدارة'},
+    {key:'workLocation', label:'موقع العمل', type:'text', default:'حسب حاجة العمل ومواقع المشاريع والعملاء'},
+    {key:'objective', label:'الهدف العام من الوظيفة', type:'textarea'},
+    {key:'responsibilities', label:'المهام والمسؤوليات (كل بند بسطر)', type:'textarea'},
+    {key:'requirements', label:'متطلبات الوظيفة (كل بند بسطر)', type:'textarea'},
+    {key:'otherDuties', label:'مهام أخرى', type:'textarea'},
+    {key:'authorities', label:'الصلاحيات ونطاق العمل', type:'textarea'},
+    {key:'values', label:'قيمنا (مفصولة بفاصلة)', type:'text', default:'الالتزام، الاحترافية، الابتكار، الجودة'},
+  ],
+  render(emp, m){
+    const co = COMPANIES[m.company] || DEFAULT_COMPANY;
+    const valuesList = (m.values||'').split(/[،,]/).map(s=>s.trim()).filter(Boolean);
+    return `
+      <div class="jd-header">
+        <img src="assets/logo.png" alt="">
+        <div class="titles">
+          <h1>${esc(m.jobTitleAr)||'المسمى الوظيفي'}</h1>
+          ${m.jobTitleEn ? `<h2>${esc(m.jobTitleEn)}</h2>` : ''}
+          ${m.department ? `<div class="dept">${esc(m.department)}</div>` : ''}
+        </div>
+      </div>
+      <div class="jd-body">
+        <div class="jd-sidebar">
+          <div>
+            <div class="jd-side-title">بيانات الوظيفة</div>
+            <div class="jd-info-grid">
+              <div class="jd-info-item"><div class="lbl">المسمى الوظيفي</div><div class="val">${esc(m.jobTitleAr)||'—'}</div></div>
+              <div class="jd-info-item"><div class="lbl">القسم</div><div class="val">${esc(m.department)||'—'}</div></div>
+              <div class="jd-info-item"><div class="lbl">الإدارة</div><div class="val">${esc(m.admin)}</div></div>
+              <div class="jd-info-item"><div class="lbl">الرئيس المباشر</div><div class="val">${esc(m.directManager)}</div></div>
+              <div class="jd-info-item"><div class="lbl">موقع العمل</div><div class="val">${esc(m.workLocation)}</div></div>
+            </div>
+          </div>
+          <div>
+            <div class="jd-side-title">متطلبات الوظيفة</div>
+            ${jdReqList(m.requirements)}
+          </div>
+          ${valuesList.length ? `<div>
+            <div class="jd-side-title">قيمنا</div>
+            <div class="jd-values">${valuesList.map(v=>`<span>${esc(v)}</span>`).join('')}</div>
+          </div>` : ''}
+        </div>
+        <div class="jd-main">
+          <div>
+            <div class="jd-section-title"><span class="ic">🎯</span> الهدف العام من الوظيفة</div>
+            <div class="jd-objective">${esc(m.objective)||'لم يُذكر الهدف بعد'}</div>
+          </div>
+          <div>
+            <div class="jd-section-title"><span class="ic">💼</span> المهام والمسؤوليات</div>
+            ${jdNumList(m.responsibilities)}
+          </div>
+          ${(m.otherDuties || m.authorities) ? `<div class="jd-two-col">
+            ${m.otherDuties ? `<div class="jd-mini-box"><h4>📋 مهام أخرى</h4><p>${esc(m.otherDuties)}</p></div>` : ''}
+            ${m.authorities ? `<div class="jd-mini-box"><h4>🔑 الصلاحيات ونطاق العمل</h4><p>${esc(m.authorities)}</p></div>` : ''}
+          </div>` : ''}
+        </div>
+      </div>
+      ${docFooter({company:m.company})}`;
+  }
+};
 
 const FORM_AQD_MAWAD = {
   id:'aqd-mawad', cat:'contracts', titleAr:'عقد عمل - بيت هايل لمواد البناء',
@@ -410,27 +729,41 @@ const FORM_AQD_TASHEERA = {
   ],
   render(emp,m){
     const co = COMPANIES[m.company] || DEFAULT_COMPANY;
-    return `
-      <div class="doc-header"><img src="assets/logo.png"><div class="co-name">${co.nameAr}<br>${co.nameEn}</div></div>
-      <div class="doc-title"><h1>عقد عمل</h1><h2>Employment Contract</h2></div>
-      <div class="row">${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}${kv('رقم التأشيرة', m.visaNumber)}</div>
-      <div class="bi-row">
-        <div class="ar">بموجب هذا العقد تم الاتفاق بين: الطرف الأول: ${co.nameAr}، سجل تجاري رقم: ${co.cr}.<br>والطرف الثاني السيد: <b>${esc(m.employeeName)}</b> — الجنسية: ${esc(m.nationalityAr)} — يحمل جواز رقم: ${esc(m.passportNumber)}.</div>
-        <div class="en">Under this contract, agreement was made between: First Party: ${co.nameEn}, CR No.: ${co.cr}.<br>And Second Party: Mr. <b>${esc(m.employeeNameEn||m.employeeName)}</b> — Nationality: ${esc(m.nationalityEn||m.nationalityAr)} — Passport No.: ${esc(m.passportNumber)}.</div>
-      </div>
-      <div class="clause"><span class="num">1.</span> <span>أن يعمل الطرف الثاني لدى الطرف الأول بمهنة: ${esc(m.jobTitleAr)}، وأن يعمل في أي مكان حسب متطلبات العمل لدى الطرف الأول.<br><span style="color:var(--ink-soft);font-size:12.5px">The second party shall work for the first party as: ${esc(m.jobTitleEn||m.jobTitleAr)}, and may be assigned to any location as required.</span></span></div>
-      <div class="clause"><span class="num">2.</span> <span>يؤمّن الطرف الأول للطرف الثاني سكناً جماعياً ورعاية صحية ومواصلات يتم الاتفاق عليها.<br><span style="color:var(--ink-soft);font-size:12.5px">The first party shall provide shared housing, health care, and transportation as agreed.</span></span></div>
-      <div class="clause"><span class="num">3.</span> <span>يدفع الطرف الأول للطرف الثاني راتباً شهرياً قدره ${money(m.monthlySalary)} ريال.<br><span style="color:var(--ink-soft);font-size:12.5px">The first party shall pay the second party a monthly salary of ${money(m.monthlySalary)} SAR.</span></span></div>
-      <div class="clause"><span class="num">4.</span> <span>العقد لمدة ${esc(m.contractYears||2)} سنة قابل للتجديد، يبدأ من تاريخ وصول الطرف الثاني لمقر عمله واستلامه العمل.<br><span style="color:var(--ink-soft);font-size:12.5px">The contract is for ${esc(m.contractYears||2)} year(s), renewable, starting from the second party's arrival and commencement of work.</span></span></div>
-      <div class="clause"><span class="num">5.</span> <span>تعتبر أول ${esc(m.probationMonths||6)} أشهر فترة تجربة، ويعتبر العقد ساري المفعول بعد انتهائها.<br><span style="color:var(--ink-soft);font-size:12.5px">The first ${esc(m.probationMonths||6)} months shall be a probationary period, after which the contract becomes effective.</span></span></div>
-      <div class="clause"><span class="num">6.</span> <span>يتعهد الطرف الثاني بالحفاظ على الآلات التي في عهدته، ويكون مسؤولاً مسؤولية كاملة عنها وإعادتها بعد انتهاء العمل.<br><span style="color:var(--ink-soft);font-size:12.5px">The second party shall take full responsibility for any equipment entrusted to him and return it upon termination.</span></span></div>
-      <div class="clause"><span class="num">7.</span> <span>يعتبر نظام العمل المعمول به في المملكة العربية السعودية مكمّلاً لبنود هذا العقد، وأي خلاف يُفصل فيه وفق هذا النظام.<br><span style="color:var(--ink-soft);font-size:12.5px">Saudi Labor Law shall govern any matter not covered herein and any dispute between the parties.</span></span></div>
-      <p class="para">وعلى هذا جرى الاتفاق. / This agreement is made accordingly.</p>
-      <div class="sign-grid two" style="margin-top:50px">
-        <div class="sign-box"><div class="line">الطرف الأول: ${co.nameAr}<br>First Party</div></div>
-        <div class="sign-box"><div class="line">الطرف الثاني: ${esc(m.employeeName)}<br>Second Party</div></div>
-      </div>
-      ${docFooter({company:m.company})}`;
+    const dateStr = m.date ? fmtDate(m.date) : todayStr();
+    let html = ctLogo();
+    html += ctTable(
+      ctRow2(
+        `This Agreement was made in <b>${dateStr}</b> between:`,
+        `أبرم هذا العقد في: <b>${dateStr}</b> بين:`
+      ) +
+      ctRow2(
+        `<b>${co.nameEn}</b><br>CR No.: ${co.cr}<br>Referred to hereinafter as (First Party).`,
+        `<b>${co.nameAr}</b><br>سجل تجاري رقم: ${co.cr}<br>يشار إليه فيما بعد (بالطرف الأول).`
+      ) +
+      ctRow4('And:', esc(m.employeeNameEn||m.employeeName), esc(m.employeeName), 'وبين :') +
+      ctRow4('Nationality:', esc(m.nationalityEn||m.nationalityAr), esc(m.nationalityAr), 'الجنسية:') +
+      ctRow4('Passport No.:', esc(m.passportNumber), esc(m.passportNumber), 'رقم الجواز:') +
+      ctRow4('Visa No.:', esc(m.visaNumber), esc(m.visaNumber), 'رقم التأشيرة:')
+    );
+    html += ctTable(
+      ctHeadRow('Contract Terms', 'بنود العقد') +
+      ctClause('1', `The second party shall work for the first party as: <b>${esc(m.jobTitleEn||m.jobTitleAr)}</b>, and may be assigned to any location as required by the employer.`, `أن يعمل الطرف الثاني لدى الطرف الأول بمهنة: <b>${esc(m.jobTitleAr)}</b>، وأن يعمل في أي مكان حسب متطلبات العمل لدى الطرف الأول.`) +
+      ctClause('2', 'The first party shall provide the second party with shared housing, health care, and transportation as agreed.', 'يؤمّن الطرف الأول للطرف الثاني سكناً جماعياً ورعاية صحية ومواصلات يتم الاتفاق عليها.') +
+      ctClause('3', `The first party shall pay the second party a monthly salary of <b>${money(m.monthlySalary)} SAR</b>.`, `يدفع الطرف الأول للطرف الثاني راتباً شهرياً قدره <b>${money(m.monthlySalary)} ريال</b>.`) +
+      ctClause('4', `The contract is for <b>${esc(m.contractYears||2)} year(s)</b>, renewable, starting from the second party's arrival and commencement of work.`, `العقد لمدة <b>${esc(m.contractYears||2)} سنة</b> قابل للتجديد، يبدأ من تاريخ وصول الطرف الثاني لمقر عمله واستلامه العمل.`) +
+      ctClause('5', `The first <b>${esc(m.probationMonths||6)} months</b> shall be a probationary period, after which the contract becomes effective.`, `تعتبر أول <b>${esc(m.probationMonths||6)} أشهر</b> فترة تجربة، ويعتبر العقد ساري المفعول بعد انتهائها.`) +
+      ctClause('6', 'The second party shall take full responsibility for any equipment entrusted to him and return it upon termination of work.', 'يتعهد الطرف الثاني بالحفاظ على الآلات التي في عهدته، ويكون مسؤولاً مسؤولية كاملة عنها وإعادتها بعد انتهاء العمل.') +
+      ctClause('7', 'Saudi Labor Law shall govern any matter not covered herein, and any dispute between the parties shall be resolved accordingly.', 'يعتبر نظام العمل المعمول به في المملكة العربية السعودية مكمّلاً لبنود هذا العقد، وأي خلاف ينشأ بين الطرفين يُفصل فيه وفق هذا النظام.') +
+      ctRow2('This agreement is made accordingly.', 'وعلى هذا جرى الاتفاق.')
+    );
+    html += `<div style="height:24px"></div>`;
+    html += ctTableLoose(
+      `<tr class="ct-head"><th style="width:50%">${co.nameAr}</th><th style="width:50%">اسم الموظف</th></tr>` +
+      `<tr><td class="rtl ctr">First Party</td><td class="rtl ctr">${esc(m.employeeName)}</td></tr>` +
+      `<tr><td style="height:50px"></td><td></td></tr>`
+    );
+    html += docFooter({company:m.company});
+    return html;
   }
 };
 
@@ -762,6 +1095,8 @@ const FORM_VACATION_DUES = {
     {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
     {key:'startWork', label:'تاريخ بداية العمل', type:'date', default: e=>e?.joinDate},
     {key:'lastDay', label:'تاريخ آخر يوم عمل', type:'date'},
+    {key:'currentBalance', label:'رصيد الإجازات الحالي', type:'number', default: e=>e?.annualLeave},
+    {key:'usedDays', label:'الإجازات المستنفذة', type:'number', default:'0'},
     {key:'ticketFrom', label:'الرحلة من', type:'text'},
     {key:'ticketTo', label:'الرحلة إلى', type:'text'},
     {key:'ticketAmount', label:'سعر التذكرة (ر.س)', type:'number'},
@@ -776,7 +1111,8 @@ const FORM_VACATION_DUES = {
       <div class="row">${kv('الاسم', emp.nameAr)}${kv('الوظيفة', emp.jobTitleAr)}${kv('الرقم الوظيفي', emp.jobNo)}${kv('الجنسية', emp.nationalityAr)}</div>
       <table class="doc-table"><thead><tr><th>الأساسي</th><th>السكن</th><th>النقل</th><th>أخرى</th><th>الإجمالي</th></tr></thead>
         <tbody><tr><td>${money(emp.basic)}</td><td>${money(emp.housing)}</td><td>${money(emp.transport)}</td><td>${money(emp.living)}</td><td><b>${money(emp.total)}</b></td></tr></tbody></table>
-      <div class="row">${kv('رصيد الإجازات (يوم)', emp.annualLeave)}${kv('مبلغ بدل الإجازة', money(m.vacationAllowance))}${kv('أيام بدون راتب', m.unpaidDays)}</div>
+      <div class="row">${kv('رصيد الإجازات الحالي', m.currentBalance)}${kv('الإجازات المستنفذة', m.usedDays)}${kv('مبلغ بدل الإجازة', money(m.vacationAllowance))}${kv('أيام بدون راتب', m.unpaidDays)}</div>
+      <div class="row">${kv('اسم البنك', emp.bankAr)}${kv('رقم الآيبان', emp.iban)}</div>
       <div class="section-title">مدة الخدمة</div>
       <div class="row">${kv('تاريخ بداية العمل', m.startWork?fmtDate(m.startWork):'—')}${kv('تاريخ آخر يوم عمل', m.lastDay?fmtDate(m.lastDay):'—')}</div>
       <table class="doc-table"><thead><tr><th>سنة</th><th>شهر</th><th>يوم</th></tr></thead>
@@ -1101,12 +1437,13 @@ const FORM_INVESTIGATION_RECORD = {
    تسجيل جميع النماذج
    ============================================================ */
 const FORMS = [
-  // التوظيف والعروض الوظيفية
-  FORM_JOB_OFFER,
   // الشهادات والتعريفات
   FORM_TAAREEF_AR, FORM_TAAREEF_EN, FORM_SHAHADAT_KHIBRA, FORM_MAALOOMAT_MUWAZAF, FORM_MALAF_MUWAZAF,
+  FORM_TAAREEF_SAFARA, FORM_TAAREEF_RATIB_SAFARAT, FORM_ADAM_MUMANAA, FORM_TAAREEF_RATIB, FORM_TAAREEF_TATHBEET_RIYAD, FORM_TAAREEF_TATHBEET_ALINMA, FORM_TAAREEF_TATHBEET_RATIB, FORM_TAAREEF_MUWAZAF_EOS,
   // عقود العمل
   FORM_AQD_MAWAD, FORM_AQD_NAQLIYAT, FORM_AQD_SIYANA, FORM_AQD_MAWAD_AMOLA, FORM_AQD_NAQLIYAT_AMOLA, FORM_AQD_TASHEERA,
+  // الوصف الوظيفي
+  FORM_JOB_DESCRIPTION,
   // إنهاء الخدمة وإخلاء الطرف
   FORM_IKHLA_TARAF, FORM_IKHLA_TARAF_CHECKLIST, FORM_NON_RENEWAL_RESIDENT, FORM_NON_RENEWAL_SAUDI, FORM_NON_RENEWAL_EMPLOYEE,
   FORM_TERM_PROBATION, FORM_TERM_MUTUAL, FORM_TERM_RELATIONSHIP, FORM_RESIGN, FORM_RESIGN_PROBATION,

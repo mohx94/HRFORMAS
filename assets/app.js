@@ -190,17 +190,34 @@ function renderShell(){
 
 function renderSidebar(){
   const el = document.getElementById('sidebar');
+  el.innerHTML = `<div class="sidebar-search"><input type="text" id="sidebarSearch" placeholder="ابحث عن نموذج..."></div><div id="sidebarList"></div>`;
+  renderSidebarList('');
+  document.getElementById('sidebarSearch').addEventListener('input', (e)=>{
+    renderSidebarList(e.target.value.trim());
+  });
+}
+
+function renderSidebarList(query){
+  const listEl = document.getElementById('sidebarList');
+  const q = query.toLowerCase();
   let html = '';
+  let anyMatch = false;
   CATEGORIES.forEach(cat=>{
+    const forms = FORMS.filter(f=>f.cat===cat.id && (!q || f.titleAr.toLowerCase().includes(q)));
+    if(forms.length===0) return;
+    anyMatch = true;
     html += `<h3>${cat.title}</h3>`;
-    FORMS.filter(f=>f.cat===cat.id).forEach(f=>{
+    forms.forEach(f=>{
       html += `<button class="nav-item" data-id="${f.id}">${f.titleAr}</button>`;
     });
   });
-  el.innerHTML = html;
-  el.querySelectorAll('.nav-item').forEach(btn=>{
+  if(!anyMatch){
+    html = `<div class="no-results" style="padding:16px 4px">لا توجد نتائج</div>`;
+  }
+  listEl.innerHTML = html;
+  listEl.querySelectorAll('.nav-item').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      el.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+      listEl.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       const form = FORMS.find(f=>f.id===btn.dataset.id);
       openForm(form);
@@ -215,9 +232,28 @@ function renderWelcome(){
       <img src="assets/logo.png" alt="">
       <h1>منصة نماذج الموارد البشرية</h1>
       <p>اختر نموذجاً من القائمة أدناه، أو من القائمة الجانبية. حدد الموظف وستُعبّى بياناته تلقائياً، ثم أكمل الحقول الخاصة بالحالة واطبع مباشرة بصيغة A4.</p>
-    </div>`;
+    </div>
+    <div class="search-bar">
+      <input type="text" id="formSearch" placeholder="ابحث عن نموذج بالاسم...">
+      <span class="icon">🔍</span>
+    </div>
+    <div id="formsDirectory"></div>`;
+  main.innerHTML = html;
+  renderFormsDirectory('');
+  document.getElementById('formSearch').addEventListener('input', (e)=>{
+    renderFormsDirectory(e.target.value.trim());
+  });
+}
+
+function renderFormsDirectory(query){
+  const el = document.getElementById('formsDirectory');
+  const q = query.toLowerCase();
+  let html = '';
+  let anyMatch = false;
   CATEGORIES.forEach(cat=>{
-    const forms = FORMS.filter(f=>f.cat===cat.id);
+    const forms = FORMS.filter(f=>f.cat===cat.id && (!q || f.titleAr.toLowerCase().includes(q)));
+    if(forms.length===0) return;
+    anyMatch = true;
     html += `<div class="home-cat"><h3>${cat.title}</h3><div class="home-grid">`;
     forms.forEach(f=>{
       html += `<button class="form-card" data-id="${f.id}">
@@ -227,8 +263,11 @@ function renderWelcome(){
     });
     html += `</div></div>`;
   });
-  main.innerHTML = html;
-  main.querySelectorAll('.form-card').forEach(btn=>{
+  if(!anyMatch){
+    html = `<div class="no-results">لا توجد نماذج مطابقة لبحثك</div>`;
+  }
+  el.innerHTML = html;
+  el.querySelectorAll('.form-card').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const form = FORMS.find(f=>f.id===btn.dataset.id);
       document.querySelectorAll('.nav-item').forEach(b=>{
@@ -249,10 +288,18 @@ function openForm(form){
 
   main.innerHTML = `
     <div class="form-toolbar">
-      <h2>${form.titleAr}</h2>
-      <button class="btn-print" id="printBtn" ${standalone?'':'disabled'}>طباعة A4</button>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn-back" id="backBtn">→ الرئيسية</button>
+        <h2>${form.titleAr}</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <input type="email" id="emailTo" placeholder="بريد المستلم (اختياري)" style="padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-family:inherit;font-size:13px;min-width:200px">
+        <button class="btn-email" id="emailBtn" ${standalone?'':'disabled'}>إرسال بالبريد ✉️</button>
+        <button class="btn-excel" id="excelBtn" ${standalone?'':'disabled'}>تنزيل Excel 📊</button>
+        <button class="btn-print" id="printBtn" ${standalone?'':'disabled'}>طباعة A4</button>
+      </div>
     </div>
-    ${standalone ? `<div class="hint" style="margin-bottom:14px">هذا النموذج يُعبّى يدوياً بالكامل (لا يعتمد على بيانات موظف مسجّل في الملف).</div>` : `
+    ${standalone ? `` : `
     <div class="picker-bar">
       <div class="field">
         <label>الرقم الوظيفي أو اسم الموظف</label>
@@ -262,8 +309,14 @@ function openForm(form){
       <div id="empSummary"></div>
     </div>`}
     <div class="manual-fields" id="manualFields"></div>
-    <div class="sheet-wrap"><div class="sheet" id="sheet">${standalone?'':'<div class="tag-empty" style="padding:60px;text-align:center;display:block;">حدد موظفاً لعرض النموذج</div>'}</div></div>
+    <div id="emailNote"></div>
+    <div class="sheet-wrap"><div class="sheet" id="sheet">${standalone?'':'<div class="sheet-placeholder" style="padding:60px;text-align:center;display:block;">حدد موظفاً لعرض النموذج</div>'}</div></div>
   `;
+
+  document.getElementById('backBtn').addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+    renderWelcome();
+  });
 
   if(!standalone){
     const dl = document.getElementById('empList');
@@ -280,11 +333,15 @@ function openForm(form){
           `<div class="emp-summary"><b>${esc(emp.nameAr)}</b> — ${esc(emp.jobTitleAr)} — ${esc(emp.deptAr||emp.workLocationAr)}</div>`;
         renderSheet();
         document.getElementById('printBtn').disabled = false;
+        document.getElementById('emailBtn').disabled = false;
+        document.getElementById('excelBtn').disabled = false;
       }
     });
   }
 
   document.getElementById('printBtn').addEventListener('click', ()=> window.print());
+  document.getElementById('emailBtn').addEventListener('click', ()=> sendByEmail(form));
+  document.getElementById('excelBtn').addEventListener('click', ()=> exportToExcel(form));
 
   renderManualFields();
   if(standalone){ renderSheet(); }
@@ -318,7 +375,7 @@ function renderManualFields(){
 function renderSheet(){
   const sheetEl = document.getElementById('sheet');
   if(!currentForm.standalone && !currentEmployee){
-    sheetEl.innerHTML = `<div class="tag-empty" style="padding:60px;text-align:center;display:block;">حدد موظفاً لعرض النموذج</div>`;
+    sheetEl.innerHTML = `<div class="sheet-placeholder" style="padding:60px;text-align:center;display:block;">حدد موظفاً لعرض النموذج</div>`;
     return;
   }
   sheetEl.innerHTML = currentForm.render(currentEmployee, manualValues);
@@ -338,11 +395,310 @@ function docHeader(emp, subtitleAr, subtitleEn){
     </div>`;
 }
 function docFooter(emp){
-  const co = companyOf(emp);
-  return `<div class="doc-footer">${co.nameAr} — إدارة الموارد البشرية · تم إنشاء هذا المستند إلكترونياً</div>`;
+  return '';
 }
 function signBox(labelAr){
   return `<div class="sign-box"><div class="line">${labelAr}</div></div>`;
+}
+
+/* ---------------- إرسال بالبريد (تنزيل PDF + فتح Outlook Web معبأ) ---------------- */
+const EMAIL_ACTION_BY_CAT = {
+  certificates: 'نأمل التكرم بالاطلاع.',
+  contracts: 'نأمل التكرم بالاطلاع والتفضل بالاعتماد والتوقيع.',
+  termination: 'نأمل التكرم بالاطلاع واتخاذ اللازم نحوه.',
+  financial: 'نأمل التكرم بالاطلاع والتفضل بالاعتماد المالي اللازم.',
+  operations: 'نأمل التكرم بالاطلاع.',
+};
+
+function currentEmployeeDisplayName(){
+  if(currentEmployee) return currentEmployee.nameAr;
+  const guess = manualValues.employeeName || manualValues.name || manualValues.sponsoredName || manualValues.employeeNameEn;
+  return guess || '';
+}
+function currentCompanyName(){
+  if(currentEmployee) return companyOf(currentEmployee).nameAr;
+  const key = manualValues.company;
+  return (COMPANIES[key] || DEFAULT_COMPANY).nameAr;
+}
+
+function buildEmailText(form){
+  const name = currentEmployeeDisplayName();
+  const companyName = currentCompanyName();
+  const subject = `${form.titleAr}${name ? ' - ' + name : ''}`;
+  const actionLine = EMAIL_ACTION_BY_CAT[form.cat] || EMAIL_ACTION_BY_CAT.operations;
+  const body =
+`تحية طيبة وبعد،
+
+نرفق لكم طيّه المستند التالي:
+${form.titleAr}
+
+الخاص بالموظف/ة: ${name || '—'}
+
+${actionLine}
+
+ولكم منا خالص الشكر والتقدير.
+
+إدارة الموارد البشرية
+${companyName}`;
+  return {subject, body};
+}
+
+function sendByEmail(form){
+  const sheetEl = document.getElementById('sheet');
+  if(!sheetEl || sheetEl.querySelector('.sheet-placeholder')){
+    alert('حدد موظفاً أولاً لعرض النموذج قبل الإرسال.');
+    return;
+  }
+  const note = document.getElementById('emailNote');
+  const to = (document.getElementById('emailTo').value || '').trim();
+  const {subject, body} = buildEmailText(form);
+  const parts = [];
+  if(to) parts.push('to=' + encodeURIComponent(to));
+  parts.push('subject=' + encodeURIComponent(subject));
+  parts.push('body=' + encodeURIComponent(body));
+  const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?${parts.join('&')}`;
+
+  window.open(outlookUrl, '_blank');
+  note.innerHTML = `<div class="email-note">📄 ستفتح الآن نافذة الطباعة — اختر <b>"حفظ كملف PDF"</b> من قائمة الطابعة واحفظه على جهازك، ثم ارجع لتبويب Outlook الذي فُتح وأرفقه هناك قبل الإرسال.</div>`;
+  setTimeout(()=> window.print(), 350);
+}
+
+/* ---------------- تنزيل Excel (يعيد بناء النموذج بنفس الشكل تقريباً) ---------------- */
+function arrayBufferToBase64(buffer){
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const chunk = 0x8000;
+  for(let i=0;i<bytes.length;i+=chunk){
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunk));
+  }
+  return btoa(binary);
+}
+function cellText(el){
+  if(!el) return '';
+  const clone = el.cloneNode(true);
+  clone.querySelectorAll('br').forEach(br => br.replaceWith(document.createTextNode('\n')));
+  return clone.textContent.replace(/[ \t]+/g,' ').replace(/\n\s*\n/g,'\n').trim();
+}
+function xlAddThinBorder(cell){
+  cell.border = { top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
+}
+function xlHeaderCell(cell){
+  cell.font = { bold:true, color:{argb:'FFFFFFFF'} };
+  cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FF4A4A4A'} };
+  cell.alignment = { horizontal:'center', vertical:'middle', wrapText:true };
+  xlAddThinBorder(cell);
+}
+function xlLabelCell(cell){
+  cell.font = { bold:true };
+  cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFF6F6F4'} };
+  cell.alignment = { vertical:'middle', wrapText:true, horizontal:'right' };
+  xlAddThinBorder(cell);
+}
+function xlValueCell(cell, center){
+  cell.alignment = { horizontal: center?'center':'right', vertical:'middle', wrapText:true };
+  xlAddThinBorder(cell);
+}
+
+const XL_COLS = 6;
+
+function xlWriteTable(table, ws){
+  Array.from(table.rows).forEach(tr=>{
+    const cells = Array.from(tr.cells);
+    const values = []; cells.forEach(td=>{ values.push(cellText(td)); for(let i=1;i<(td.colSpan||1);i++) values.push(''); });
+    const row = ws.addRow(values);
+    let colIdx = 1;
+    const isHeadRow = tr.classList.contains('ct-head') || (tr.parentElement && tr.parentElement.tagName==='THEAD');
+    cells.forEach(td=>{
+      const cell = row.getCell(colIdx);
+      const span = td.colSpan || 1;
+      if(span>1) ws.mergeCells(row.number, colIdx, row.number, colIdx+span-1);
+      if(isHeadRow || td.tagName==='TH') xlHeaderCell(cell);
+      else if(td.classList.contains('ct-label') || td.classList.contains('ct-num')) xlLabelCell(cell);
+      else xlValueCell(cell, td.classList.contains('ctr'));
+      colIdx += span;
+    });
+    row.commit && row.commit();
+  });
+}
+
+function xlWalk(root, ws){
+  Array.from(root.children).forEach(child=>{
+    const cls = child.classList;
+    if(child.tagName === 'IMG') return;
+    if(child.tagName === 'DIV' && !cls.contains('doc-header') && !cls.contains('doc-title')
+       && !cls.contains('row') && !cls.contains('bi-row') && !cls.contains('sign-grid')
+       && !cls.contains('section-title') && !cls.contains('ct-plain-title') && !cls.contains('para')
+       && !cls.contains('clause') && !cls.contains('doc-footer')){
+      // غلاف شفاف (مثل avoid-break) - عالج ما بداخله مباشرة
+      xlWalk(child, ws);
+      return;
+    }
+    if(cls.contains('doc-header')){
+      const nameEl = child.querySelector('.co-name');
+      if(nameEl){
+        const row = ws.addRow([cellText(nameEl)]);
+        ws.mergeCells(row.number,1,row.number,XL_COLS);
+        row.getCell(1).font = { bold:true, size:12 };
+        row.getCell(1).alignment = { horizontal:'right', wrapText:true };
+      }
+      return;
+    }
+    if(cls.contains('doc-title')){
+      const h1 = child.querySelector('h1'), h2 = child.querySelector('h2');
+      if(h1){
+        const row = ws.addRow([cellText(h1)]);
+        ws.mergeCells(row.number,1,row.number,XL_COLS);
+        row.getCell(1).font = { bold:true, size:14 };
+        row.getCell(1).alignment = { horizontal:'center' };
+      }
+      if(h2){
+        const row = ws.addRow([cellText(h2)]);
+        ws.mergeCells(row.number,1,row.number,XL_COLS);
+        row.getCell(1).font = { italic:true, size:11, color:{argb:'FFA9762C'} };
+        row.getCell(1).alignment = { horizontal:'center' };
+      }
+      return;
+    }
+    if(cls.contains('section-title')){
+      const row = ws.addRow([cellText(child)]);
+      ws.mergeCells(row.number,1,row.number,XL_COLS);
+      xlHeaderCell(row.getCell(1));
+      return;
+    }
+    if(cls.contains('ct-plain-title')){
+      const spans = child.querySelectorAll('span');
+      const half = Math.floor(XL_COLS/2);
+      const row = ws.addRow([cellText(spans[0])]);
+      ws.mergeCells(row.number,1,row.number,half);
+      row.getCell(1).font = { bold:true };
+      row.getCell(half+1).value = cellText(spans[1]);
+      ws.mergeCells(row.number,half+1,row.number,XL_COLS);
+      row.getCell(half+1).font = { bold:true };
+      row.getCell(half+1).alignment = { horizontal:'right' };
+      return;
+    }
+    if(cls.contains('bi-row')){
+      const ar = child.querySelector('.ar'), en = child.querySelector('.en');
+      const half = Math.floor(XL_COLS/2);
+      const row = ws.addRow([cellText(en)]);
+      ws.mergeCells(row.number,1,row.number,half);
+      row.getCell(1).alignment = { wrapText:true, horizontal:'left', vertical:'top' };
+      row.getCell(half+1).value = cellText(ar);
+      ws.mergeCells(row.number,half+1,row.number,XL_COLS);
+      row.getCell(half+1).alignment = { wrapText:true, horizontal:'right', vertical:'top' };
+      row.height = 50;
+      return;
+    }
+    if(cls.contains('sign-grid')){
+      const boxes = child.querySelectorAll('.sign-box');
+      if(boxes.length){
+        const blankRow = ws.addRow(Array.from(boxes).map(()=>''));
+        blankRow.height = 26;
+        boxes.forEach((b,i)=> xlAddThinBorder(blankRow.getCell(i+1)));
+        const labelRow = ws.addRow(Array.from(boxes).map(b=>cellText(b)));
+        boxes.forEach((b,i)=>{
+          labelRow.getCell(i+1).alignment = { horizontal:'center', wrapText:true };
+          labelRow.getCell(i+1).font = { size:9, color:{argb:'FF888888'} };
+        });
+      }
+      return;
+    }
+    if(cls.contains('row')){
+      const kvs = child.querySelectorAll('.kv');
+      if(kvs.length){
+        const cells = [];
+        kvs.forEach(kv=>{
+          const b = kv.querySelector('b');
+          const val = kv.querySelector('.val');
+          cells.push(b ? cellText(b).replace(/:$/,'') : '');
+          cells.push(val ? cellText(val) : '');
+        });
+        const row = ws.addRow(cells);
+        for(let i=0;i<cells.length;i+=2){
+          xlLabelCell(row.getCell(i+1));
+          xlValueCell(row.getCell(i+2));
+        }
+      }
+      return;
+    }
+    if(child.tagName === 'TABLE'){
+      xlWriteTable(child, ws);
+      return;
+    }
+    if(cls.contains('para')){
+      const row = ws.addRow([cellText(child)]);
+      ws.mergeCells(row.number,1,row.number,XL_COLS);
+      row.getCell(1).alignment = { wrapText:true, horizontal:'right', vertical:'top' };
+      row.height = 34;
+      return;
+    }
+    if(cls.contains('clause')){
+      const row = ws.addRow([cellText(child)]);
+      ws.mergeCells(row.number,1,row.number,XL_COLS);
+      row.getCell(1).alignment = { wrapText:true, horizontal:'right', vertical:'top' };
+      return;
+    }
+    if(cls.contains('doc-footer')){
+      const row = ws.addRow([cellText(child)]);
+      ws.mergeCells(row.number,1,row.number,XL_COLS);
+      row.getCell(1).font = { size:8, italic:true, color:{argb:'FF999999'} };
+      row.getCell(1).alignment = { horizontal:'center' };
+      return;
+    }
+    // fallback: any other block with visible text
+    const txt = cellText(child);
+    if(txt){
+      const row = ws.addRow([txt]);
+      ws.mergeCells(row.number,1,row.number,XL_COLS);
+      row.getCell(1).alignment = { wrapText:true, horizontal:'right' };
+    }
+  });
+}
+
+async function exportToExcel(form){
+  const sheetEl = document.getElementById('sheet');
+  if(!sheetEl || sheetEl.querySelector('.sheet-placeholder')){
+    alert('حدد موظفاً أولاً لعرض النموذج قبل التنزيل.');
+    return;
+  }
+  const btn = document.getElementById('excelBtn');
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'جارِ التجهيز...';
+  try{
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('النموذج', { views:[{ rightToLeft:true }] });
+    for(let i=1;i<=XL_COLS;i++) ws.getColumn(i).width = 20;
+
+    try{
+      const res = await fetch('assets/logo.png');
+      const buf = await res.arrayBuffer();
+      const base64 = arrayBufferToBase64(buf);
+      const imgId = wb.addImage({ base64: 'data:image/png;base64,'+base64, extension:'png' });
+      ws.addImage(imgId, { tl:{col:XL_COLS-1.6, row:0.1}, ext:{width:90, height:50} });
+      ws.addRow([]).height = 40;
+    }catch(e){ /* لا تُوقف التصدير إذا تعذر تحميل الشعار */ }
+
+    xlWalk(sheetEl, ws);
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const name = currentEmployeeDisplayName();
+    const safeName = (name||'نموذج').replace(/[\\/:*?"<>|]/g,'').trim();
+    a.href = url;
+    a.download = `${form.titleAr} - ${safeName}.xlsx`.replace(/\s+/g,' ');
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 2000);
+  }catch(err){
+    alert('تعذر إنشاء ملف الإكسل: ' + (err.message || err));
+  }finally{
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
 }
 
 /* ---------------- بدء التشغيل ---------------- */
