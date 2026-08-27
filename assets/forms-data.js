@@ -1,6 +1,7 @@
 /* ===== بيت هايل - تعريف جميع النماذج ===== */
 
 const CATEGORIES = [
+  {id:'recruitment',  title:'التوظيف والعروض الوظيفية'},
   {id:'certificates', title:'الشهادات والتعريفات'},
   {id:'contracts',    title:'عقود العمل'},
   {id:'jobdesc',      title:'الوصف الوظيفي'},
@@ -1434,9 +1435,106 @@ const FORM_INVESTIGATION_RECORD = {
 };
 
 /* ============================================================
+   عرض وظيفي (Job Offer) - مطابق تماماً للنموذج الأصلي
+   ============================================================ */
+function joPlain(n){ return String(num(n)); }
+function joRow(enLabel, val, arLabel){
+  return `<tr><td class="en" dir="ltr">${enLabel}</td><td class="val" dir="rtl">${val}</td><td class="arlbl" dir="rtl">${arLabel}</td></tr>`;
+}
+function joTable(headAr, rowsHtml){
+  return `<table class="jo-table" dir="ltr"><thead><tr><th colspan="3" dir="rtl">${headAr}</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
+}
+
+const FORM_JOB_OFFER = {
+  id:'job-offer', cat:'recruitment', titleAr:'عرض وظيفي',
+  standalone:true,
+  manualFields:[
+    {key:'company', label:'الشركة', type:'select', options:Object.keys(COMPANIES), default:'بيت هايل لمواد البناء'},
+    {key:'date', label:'التاريخ (ميلادي)', type:'date', default:()=>new Date().toISOString().slice(0,10)},
+    {key:'hijriDate', label:'التاريخ (هجري) - نص حر', type:'text', default:''},
+    {key:'candidateName', label:'الاسم', type:'text'},
+    {key:'nationality', label:'الجنسية', type:'text'},
+    {key:'idNumber', label:'رقم الهوية', type:'text'},
+    {key:'jobTitle', label:'المسمى الوظيفي', type:'text'},
+    {key:'probationDays', label:'فترة التجربة (يوم)', type:'number', default:'90'},
+    {key:'contractDuration', label:'مدة العقد', type:'text', default:'سنة واحدة'},
+    {key:'basicSalary', label:'الراتب الأساسي', type:'number'},
+    {key:'housingAllowance', label:'بدل السكن', type:'number'},
+    {key:'transportAllowance', label:'بدل نقل', type:'number'},
+    {key:'salaryNotes', label:'ملاحظات على الراتب (كل بند بسطر)', type:'textarea', default:'عمولة على المبيعات حسب سياسة الشركة\nتلتزم الشركة بتوفير النقل للموظف'},
+    {key:'medicalInsurance', label:'التأمين الطبي', type:'select', options:['مؤمن','غير مؤمن'], default:'مؤمن'},
+    {key:'annualVacation', label:'الاجازة السنوية (يوم)', type:'number', default:'21'},
+    {key:'lastAcceptDate', label:'آخر يوم لقبول العرض', type:'date'},
+  ],
+  render(emp, m){
+    const co = COMPANIES[m.company] || DEFAULT_COMPANY;
+    const dateStr = m.date ? fmtDate(m.date) : todayStr();
+    const total = num(m.basicSalary) + num(m.housingAllowance) + num(m.transportAllowance);
+    const notes = (m.salaryNotes||'').split('\n').map(s=>s.trim()).filter(Boolean);
+
+    return `
+      <div class="jo-header"><img src="assets/logo.png" alt=""></div>
+
+      <div class="jo-title-band">
+        <h1>عرض وظيفي</h1>
+        <h2>Job offer</h2>
+      </div>
+
+      <div class="jo-date-row">
+        <span class="ar">التاريخ : ${m.hijriDate ? esc(m.hijriDate) : '—'}</span>
+        <span class="en">Date : ${dateStr}</span>
+      </div>
+
+      ${joTable('معلومات الموظف',
+        joRow('Name', esc(m.candidateName)||'—', 'الاسم') +
+        joRow('Nationality', esc(m.nationality)||'—', 'الجنسية') +
+        joRow('ID Number', esc(m.idNumber)||'—', 'رقم الهوية')
+      )}
+
+      ${joTable('العقد',
+        joRow('Job Title', esc(m.jobTitle)||'—', 'المسمى الوظيفي') +
+        joRow('Probation', `${joPlain(m.probationDays||90)}يوم`, 'فترة التجربة') +
+        joRow('Duration of the contract', esc(m.contractDuration)||'—', 'مدة العقد')
+      )}
+
+      ${joTable('مفردات الراتب',
+        joRow('Basic salary', joPlain(m.basicSalary), 'الراتب الأساسي') +
+        joRow('Housing allowance', joPlain(m.housingAllowance), 'بدل السكن') +
+        joRow('Transfer allowance', joPlain(m.transportAllowance), 'بدل نقل') +
+        joRow('Total salary', `<b>${joPlain(total)}</b>`, 'اجمالي الراتب')
+      )}
+
+      ${notes.length ? `<div class="jo-note">${notes.map(n=>esc(n)).join('<br>')}</div>` : ''}
+
+      ${joTable('التأمين الطبي والاجازات',
+        joRow('Medical Insurance', esc(m.medicalInsurance)||'—', 'التأمين الطبي') +
+        joRow('Annual vacation', `${joPlain(m.annualVacation||21)}يوم`, 'الاجازة السنوية')
+      )}
+
+      <p class="jo-plain">باقي الشروط حسب النظام المتبع بالشركة</p>
+      <p class="jo-plain">علماً أن آخر يوم لقبول العرض في تاريخ <b>${m.lastAcceptDate?fmtDate(m.lastAcceptDate):'—'}</b></p>
+
+      <p class="jo-plain">موافق على الشروط أعلاه باعتبار أول يوم عمل لي بالشركة يوم &nbsp;___ / ___ / ___&nbsp; وعلى ذلك جرى التوقيع</p>
+
+      <div class="jo-signrow">
+        الاسم : ____________________________<br>
+        التوقيع : ____________________________<br>
+        التاريخ : ____________________________
+      </div>
+
+      <div class="jo-footer">
+        <span>المدير التنفيذي</span>
+        <span>مدير إدارة الموارد البشرية</span>
+      </div>`;
+  }
+};
+
+/* ============================================================
    تسجيل جميع النماذج
    ============================================================ */
 const FORMS = [
+  // التوظيف والعروض الوظيفية
+  FORM_JOB_OFFER,
   // الشهادات والتعريفات
   FORM_TAAREEF_AR, FORM_TAAREEF_EN, FORM_SHAHADAT_KHIBRA, FORM_MAALOOMAT_MUWAZAF, FORM_MALAF_MUWAZAF,
   FORM_TAAREEF_SAFARA, FORM_TAAREEF_RATIB_SAFARAT, FORM_ADAM_MUMANAA, FORM_TAAREEF_RATIB, FORM_TAAREEF_TATHBEET_RIYAD, FORM_TAAREEF_TATHBEET_ALINMA, FORM_TAAREEF_TATHBEET_RATIB, FORM_TAAREEF_MUWAZAF_EOS,

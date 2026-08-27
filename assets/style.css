@@ -322,3 +322,23 @@ table.sct-table{width:100%;border-collapse:collapse;margin-bottom:14px;}
   .sheet{width:100%;min-height:auto;padding:6mm;}
   .sheet-wrap{padding:8px;}
 }
+
+/* ---------- عرض وظيفي (Job Offer) - مطابق للنموذج الأصلي ---------- */
+.jo-header{display:flex;justify-content:flex-start;margin-bottom:14px;page-break-after:avoid;}
+.jo-header img{height:78px;}
+.jo-title-band{background:#efeeea;border:1px solid var(--line);padding:14px 18px;margin:0 0 16px;text-align:right;}
+.jo-title-band h1{margin:0;font-size:22px;font-weight:800;color:var(--ink);}
+.jo-title-band h2{margin:4px 0 0;font-size:15px;font-weight:600;color:var(--ink-soft);}
+.jo-date-row{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:16px;page-break-inside:avoid;}
+.jo-date-row .en{direction:ltr;text-align:left;font-family:var(--font-en);}
+.jo-date-row .ar{direction:rtl;text-align:right;font-family:var(--font-ar);}
+table.jo-table{width:100%;border-collapse:collapse;margin:0 0 14px;font-size:14px;page-break-inside:avoid;}
+.jo-table th{background:#e7e5df;border:1px solid var(--line);padding:8px;font-weight:800;text-align:center;font-size:14.5px;color:var(--ink);}
+.jo-table td{border:1px solid var(--line);padding:9px 12px;vertical-align:middle;}
+.jo-table td.en{direction:ltr;text-align:left;font-family:var(--font-en);width:25%;font-weight:600;color:var(--ink-soft);}
+.jo-table td.arlbl{direction:rtl;text-align:right;font-family:var(--font-ar);width:25%;font-weight:700;}
+.jo-table td.val{text-align:center;font-weight:800;color:var(--ink);}
+.jo-note{text-align:center;font-weight:700;font-size:13.5px;margin:-2px 0 16px;line-height:1.9;}
+.jo-plain{font-size:14.5px;line-height:2;margin-bottom:10px;text-align:right;}
+.jo-signrow{margin:22px 0 0;font-size:14.5px;line-height:2.5;}
+.jo-footer{display:flex;justify-content:space-between;margin-top:70px;font-weight:800;font-size:14px;page-break-inside:avoid;}
