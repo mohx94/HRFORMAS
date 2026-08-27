@@ -299,7 +299,7 @@ function openForm(form){
         <button class="btn-print" id="printBtn" ${standalone?'':'disabled'}>طباعة A4</button>
       </div>
     </div>
-    ${standalone ? `<div class="hint" style="margin-bottom:14px">هذا النموذج يُعبّى يدوياً بالكامل (لا يعتمد على بيانات موظف مسجّل في الملف).</div>` : `
+    ${standalone ? `` : `
     <div class="picker-bar">
       <div class="field">
         <label>الرقم الوظيفي أو اسم الموظف</label>
