@@ -232,7 +232,7 @@ table.doc-table th{background:var(--sand-light);font-weight:800;color:var(--ink)
   padding:2mm 11mm 10mm;
   overflow:hidden;
   color:#151515;
-  font-family:Arial,Tahoma,'Segoe UI',sans-serif;
+  font-family:var(--font-ar);
   font-size:12.5px;
   direction:rtl;
   box-sizing:border-box;
@@ -275,7 +275,7 @@ table.doc-table th{background:var(--sand-light);font-weight:800;color:var(--ink)
   line-height:1.15;
 }
 .jo-title-ar{font-size:20px;font-weight:400;margin-bottom:1.2mm;}
-.jo-title-en{font-size:16px;font-weight:400;direction:ltr;}
+.jo-title-en{font-size:16px;font-weight:400;direction:ltr;font-family:var(--font-en);}
 .jo-date-row{
   display:flex;
   direction:ltr;
@@ -284,7 +284,7 @@ table.doc-table th{background:var(--sand-light);font-weight:800;color:var(--ink)
   margin:0 .2mm 4mm;
   font-size:12.5px;
 }
-.jo-date-en{direction:ltr;text-align:left;}
+.jo-date-en{direction:ltr;text-align:left;font-family:var(--font-en);}
 .jo-date-ar{direction:rtl;text-align:right;}
 .jo-date-row b{font-weight:700;font-size:13px;}
 
@@ -313,18 +313,18 @@ table.doc-table th{background:var(--sand-light);font-weight:800;color:var(--ink)
   height:7mm;
   text-align:center;
   direction:rtl;
-  font-family:Tahoma,Arial,'Segoe UI',sans-serif;
+  font-family:var(--font-ar);
   font-size:14.4px;
   font-weight:400;
   background:rgba(241,241,241,.45);
 }
-.jo-table .jo-en{direction:ltr;text-align:center;font-size:13.6px;}
+.jo-table .jo-en{direction:ltr;text-align:center;font-size:13.6px;font-family:var(--font-en);}
 .jo-table .jo-value{direction:rtl;text-align:center;font-weight:700;font-size:14.5px;}
 .jo-table .jo-ar{direction:rtl;text-align:center;font-size:13.8px;}
 .jo-gap-top{margin-top:6.5mm;}
 .jo-benefit-lines{
   text-align:right;
-  font-family:Tahoma,Arial,'Segoe UI',sans-serif;
+  font-family:var(--font-ar);
   font-weight:700;
   font-size:13.4px;
   line-height:1.65;
@@ -334,20 +334,20 @@ table.doc-table th{background:var(--sand-light);font-weight:800;color:var(--ink)
 .jo-terms{
   text-align:right;
   margin-top:5.5mm;
-  font-family:Tahoma,Arial,'Segoe UI',sans-serif;
+  font-family:var(--font-ar);
   font-size:13.2px;
 }
 .jo-expiry{
   text-align:right;
   margin-top:5.5mm;
-  font-family:Tahoma,Arial,'Segoe UI',sans-serif;
+  font-family:var(--font-ar);
   font-size:13.2px;
 }
 .jo-expiry b{font-size:13.7px;}
 .jo-accept{
   text-align:center;
   margin-top:7.8mm;
-  font-family:Tahoma,Arial,'Segoe UI',sans-serif;
+  font-family:var(--font-ar);
   font-size:12.7px;
   line-height:1.65;
 }
@@ -356,7 +356,7 @@ table.doc-table th{background:var(--sand-light);font-weight:800;color:var(--ink)
   width:31%;
   margin-left:69%;
   margin-top:2.1mm;
-  font-family:Tahoma,Arial,'Segoe UI',sans-serif;
+  font-family:var(--font-ar);
   font-size:12.4px;
   line-height:1.72;
   text-align:right;
@@ -368,7 +368,7 @@ table.doc-table th{background:var(--sand-light);font-weight:800;color:var(--ink)
   align-items:flex-end;
   margin-top:12.2mm;
   padding:0 .2mm;
-  font-family:Tahoma,Arial,'Segoe UI',sans-serif;
+  font-family:var(--font-ar);
   font-size:11.7px;
 }
 .jo-sign-right{width:40%;text-align:right;}
