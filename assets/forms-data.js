@@ -509,14 +509,16 @@ function renderEmploymentContract(emp, m, opts){
       'تحدد أيام العمل العادية بـ 6 أيام في الأسبوع وتحدد ساعات العمل اليومية بـ 8 ساعات في اليوم. ويحق للطرف الثاني يوم راحة واحد في الأسبوع، وتحدد أيام العمل وأوقات العمل من قبل صاحب العمل.'
     )
   );
-  page2 += ctTable(
+
+  let page2b = ctLogo();
+  page2b += ctTable(
     ctHeadRow('5. Annual Leave', 'الاجازات السنوية .5') +
     ctRow2(
       `The second party shall be entitled to a paid vacation of <b>${esc(emp.annualLeave||21)}</b> calendar days, each year.`,
       `يحق للطرف الثاني عن كل عام إجازة سنوية مدفوعة الاجر مدتها <b>${esc(emp.annualLeave||21)}</b> يوم تقويمي.`
     )
   );
-  page2 += ctTable(
+  page2b += ctTable(
     ctHeadRow('6. Wages & Financial Benefits', 'الاجر والمزايا المالية .6') +
     ctRow2('The second party shall be given the following wage and benefits:', 'يستحق الطرف الثاني الأجر والبدلات والمزايا التالية:') +
     ctRow4('Basic Wage:', money(emp.basic), money(emp.basic), ':الاجر الأساسي') +
@@ -532,7 +534,7 @@ function renderEmploymentContract(emp, m, opts){
       `يدفع الطرف الأول للطرف الثاني اجراً قدره <b>${money(emp.total)}</b> ريال سعودي فقط نهاية كل شهر.`
     )
   );
-  page2 += ctTable(
+  page2b += ctTable(
     ctHeadRow("7. Second Party's Bank Account Information", 'معلومات الحساب البنكي للطرف الثاني .7') +
     ctRow4('Bank Name:', esc(emp.bankEn||emp.bankAr), esc(emp.bankAr), ': اسم البنك') +
     ctRow4('IBAN:', esc(emp.iban), esc(emp.iban), ':رقم الايبان')
@@ -567,7 +569,7 @@ function renderEmploymentContract(emp, m, opts){
   );
   page4 += docFooter(emp);
 
-  return ctPageWrap(page1, false) + ctPageWrap(page2, false) + ctPageWrap(page3, false) + ctPageWrap(page4, true);
+  return ctPageWrap(page1, false) + ctPageWrap(page2, false) + ctPageWrap(page2b, false) + ctPageWrap(page3, false) + ctPageWrap(page4, true);
 }
 
 const CONTRACT_MANUAL_FIELDS = [
