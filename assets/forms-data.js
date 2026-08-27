@@ -510,16 +510,21 @@ function renderEmploymentContract(emp, m, opts){
       'تحدد أيام العمل العادية بـ 6 أيام في الأسبوع وتحدد ساعات العمل اليومية بـ 8 ساعات في اليوم. ويحق للطرف الثاني يوم راحة واحد في الأسبوع، وتحدد أيام العمل وأوقات العمل من قبل صاحب العمل.'
     )
   );
-
-  let page2b = ctLogo();
-  page2b += ctTable(
+  page2 += ctTable(
+    ctHeadRow('4. Work Hours & Weekly Rest', 'ساعات العمل والراحة الأسبوعية .4') +
+    ctRow2(
+      'Normal working days shall be 6 days per week and working hours shall be 8 hours (DAILY). In addition, the second party shall be entitled to 1 day rest per week. Working days and working times are determined by the employer.',
+      'تحدد أيام العمل العادية بـ 6 أيام في الأسبوع وتحدد ساعات العمل اليومية بـ 8 ساعات في اليوم. ويحق للطرف الثاني يوم راحة واحد في الأسبوع، وتحدد أيام العمل وأوقات العمل من قبل صاحب العمل.'
+    )
+  );
+  page2 += ctTable(
     ctHeadRow('5. Annual Leave', 'الاجازات السنوية .5') +
     ctRow2(
       `The second party shall be entitled to a paid vacation of <b>${esc(emp.annualLeave||21)}</b> calendar days, each year.`,
       `يحق للطرف الثاني عن كل عام إجازة سنوية مدفوعة الاجر مدتها <b>${esc(emp.annualLeave||21)}</b> يوم تقويمي.`
     )
   );
-  page2b += ctTable(
+  page2 += ctTable(
     ctHeadRow('6. Wages & Financial Benefits', 'الاجر والمزايا المالية .6') +
     ctRow2('The second party shall be given the following wage and benefits:', 'يستحق الطرف الثاني الأجر والبدلات والمزايا التالية:') +
     ctRow4('Basic Wage:', money(emp.basic), money(emp.basic), ':الاجر الأساسي') +
@@ -535,7 +540,7 @@ function renderEmploymentContract(emp, m, opts){
       `يدفع الطرف الأول للطرف الثاني اجراً قدره <b>${money(emp.total)}</b> ريال سعودي فقط نهاية كل شهر.`
     )
   );
-  page2b += ctTable(
+  page2 += ctTable(
     ctHeadRow("7. Second Party's Bank Account Information", 'معلومات الحساب البنكي للطرف الثاني .7') +
     ctRow4('Bank Name:', esc(emp.bankEn||emp.bankAr), esc(emp.bankAr), ': اسم البنك') +
     ctRow4('IBAN:', esc(emp.iban), esc(emp.iban), ':رقم الايبان')
@@ -556,19 +561,21 @@ function renderEmploymentContract(emp, m, opts){
     ctHeadRow('10. General Provisions', 'أحكام عامة .10') +
     CONTRACT_GENERAL.map(([n,en,ar])=>ctClause(n,en,ar)).join('')
   );
-  page4 += ctTable(
+
+  let page5 = ctLogo();
+  page5 += ctTable(
     ctHeadRow('11. Additional Terms', 'بنود إضافية .11') +
     CONTRACT_ADDITIONAL.map(([n,en,ar])=>ctClause(n,en,ar)).join('')
   );
-  page4 += `<div style="height:24px"></div>`;
-  page4 += ctTableLoose(
+  page5 += `<div style="height:24px"></div>`;
+  page5 += ctTableLoose(
     `<tr class="ct-head"><th style="width:50%">${co.nameAr}</th><th style="width:50%">اسم الموظف</th></tr>` +
     `<tr><td class="rtl ctr">${signatory}</td><td class="rtl ctr">${esc(emp.nameAr)}</td></tr>` +
     `<tr><td class="ltr ctr">${signatoryEn}</td><td class="ltr ctr">${esc(emp.nameEn||'')}</td></tr>` +
     `<tr><td style="height:50px"></td><td></td></tr>`
   );
 
-  return ctPageWrap(page1, false) + ctPageWrap(page2, false) + ctPageWrap(page2b, false) + ctPageWrap(page3, false) + ctPageWrap(page4, true);
+  return ctPageWrap(page1, false) + ctPageWrap(page2, false) + ctPageWrap(page3, false) + ctPageWrap(page4, false) + ctPageWrap(page5, true);
 }
 
 const CONTRACT_MANUAL_FIELDS = [
