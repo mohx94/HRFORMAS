@@ -424,7 +424,7 @@ function ctTableLoose(rowsHtml){
   return `<div class="avoid-break"><table class="ct-table" dir="ltr"><tbody>${rowsHtml}</tbody></table></div>`;
 }
 function ctPlainTitle(en, ar){
-  return `<div class="ct-plain-title"><span>${en}</span><span>${ar}</span></div>`;
+  return `<div class="ct-plain-title" dir="ltr"><span>${en}</span><span>${ar}</span></div>`;
 }
 
 function ctPageWrap(innerHtml, isLast){
@@ -545,7 +545,9 @@ function renderEmploymentContract(emp, m, opts){
     ctHeadRow("8. First Party's Obligations", 'التزامات الطرف الأول .8') +
     CONTRACT_OBLIGATIONS.map(([n,en,ar])=>ctClause(n,en,ar)).join('')
   );
-  page3 += ctTable(
+
+  let page3b = ctLogo();
+  page3b += ctTable(
     ctHeadRow("9. Second Party's Obligations", 'التزامات الطرف الثاني .9') +
     CONTRACT_DUTIES.map(([n,en,ar])=>ctClause(n,en,ar)).join('')
   );
@@ -555,21 +557,23 @@ function renderEmploymentContract(emp, m, opts){
     ctHeadRow('10. General Provisions', 'أحكام عامة .10') +
     CONTRACT_GENERAL.map(([n,en,ar])=>ctClause(n,en,ar)).join('')
   );
-  page4 += ctTable(
+
+  let page4b = ctLogo();
+  page4b += ctTable(
     ctHeadRow('11. Additional Terms', 'بنود إضافية .11') +
     CONTRACT_ADDITIONAL.map(([n,en,ar])=>ctClause(n,en,ar)).join('')
   );
 
-  page4 += `<div style="height:24px"></div>`;
-  page4 += ctTableLoose(
+  page4b += `<div style="height:24px"></div>`;
+  page4b += ctTableLoose(
     `<tr class="ct-head"><th style="width:50%">${co.nameAr}</th><th style="width:50%">اسم الموظف</th></tr>` +
     `<tr><td class="rtl ctr">${signatory}</td><td class="rtl ctr">${esc(emp.nameAr)}</td></tr>` +
     `<tr><td class="ltr ctr">${signatoryEn}</td><td class="ltr ctr">${esc(emp.nameEn||'')}</td></tr>` +
     `<tr><td style="height:50px"></td><td></td></tr>`
   );
-  page4 += docFooter(emp);
+  page4b += docFooter(emp);
 
-  return ctPageWrap(page1, false) + ctPageWrap(page2, false) + ctPageWrap(page2b, false) + ctPageWrap(page3, false) + ctPageWrap(page4, true);
+  return ctPageWrap(page1, false) + ctPageWrap(page2, false) + ctPageWrap(page2b, false) + ctPageWrap(page3, false) + ctPageWrap(page3b, false) + ctPageWrap(page4, false) + ctPageWrap(page4b, true);
 }
 
 const CONTRACT_MANUAL_FIELDS = [
