@@ -3,6 +3,7 @@
 const CATEGORIES = [
   {id:'certificates', title:'الشهادات والتعريفات'},
   {id:'contracts',    title:'عقود العمل'},
+  {id:'jobdesc',      title:'الوصف الوظيفي'},
   {id:'termination',  title:'إنهاء الخدمة وإخلاء الطرف'},
   {id:'financial',    title:'المالية والمستحقات'},
   {id:'operations',   title:'العمليات اليومية'},
@@ -580,6 +581,84 @@ const CONTRACT_MANUAL_FIELDS = [
   {key:'signatory', label:'اسم المفوض بالتوقيع', type:'text', default:'سليمان ناصر الحمد'},
   {key:'signatoryTitle', label:'صفة المفوض', type:'text', default:'وكيل'},
 ];
+
+/* ============================================================
+   الوصف الوظيفي
+   ============================================================ */
+function jdListToItems(text){
+  return (text||'').split('\n').map(s=>s.trim()).filter(Boolean);
+}
+function jdNumList(text){
+  const items = jdListToItems(text);
+  if(!items.length) return '<p style="font-size:12px;color:#999">لم تُذكر بنود بعد</p>';
+  return `<ol class="jd-num-list">${items.map((it,i)=>`<li><b>${i+1}</b><span>${esc(it)}</span></li>`).join('')}</ol>`;
+}
+function jdCheckList(text){
+  const items = jdListToItems(text);
+  if(!items.length) return '<p style="font-size:12px;color:#999">لم تُذكر بنود بعد</p>';
+  return `<ul class="jd-check-list">${items.map(it=>`<li>${esc(it)}</li>`).join('')}</ul>`;
+}
+
+const FORM_JOB_DESCRIPTION = {
+  id:'job-description', cat:'jobdesc', titleAr:'الوصف الوظيفي',
+  standalone:true,
+  manualFields:[
+    {key:'company', label:'الشركة', type:'select', options:Object.keys(COMPANIES), default:'بيت هايل لمواد البناء'},
+    {key:'jobTitleAr', label:'المسمى الوظيفي (عربي)', type:'text'},
+    {key:'jobTitleEn', label:'Job Title (EN)', type:'text'},
+    {key:'department', label:'القسم', type:'text'},
+    {key:'admin', label:'الإدارة', type:'text', default:'حسب الهيكل التنظيمي المعتمد'},
+    {key:'directManager', label:'الرئيس المباشر', type:'text', default:'حسب ما تحدده الإدارة'},
+    {key:'workLocation', label:'موقع العمل', type:'text', default:'حسب حاجة العمل ومواقع المشاريع والعملاء'},
+    {key:'objective', label:'الهدف العام من الوظيفة', type:'textarea'},
+    {key:'responsibilities', label:'المهام والمسؤوليات (كل بند بسطر)', type:'textarea'},
+    {key:'requirements', label:'متطلبات الوظيفة (كل بند بسطر)', type:'textarea'},
+    {key:'otherDuties', label:'مهام أخرى', type:'textarea'},
+    {key:'authorities', label:'الصلاحيات ونطاق العمل', type:'textarea'},
+    {key:'values', label:'قيمنا (مفصولة بفاصلة)', type:'text', default:'الالتزام، الاحترافية، الابتكار، الجودة'},
+  ],
+  render(emp, m){
+    const co = COMPANIES[m.company] || DEFAULT_COMPANY;
+    const valuesList = (m.values||'').split(/[،,]/).map(s=>s.trim()).filter(Boolean);
+    return `
+      <div class="jd-header">
+        <div class="titles">
+          <h1>${esc(m.jobTitleAr)||'المسمى الوظيفي'}</h1>
+          <h2>${esc(m.jobTitleEn)||''}</h2>
+          <div class="dept">${esc(m.department)||''}</div>
+        </div>
+        <img src="assets/logo.png" alt="">
+      </div>
+      <div class="jd-body">
+        <div class="jd-sidebar">
+          <div class="jd-side-title">بيانات الوظيفة</div>
+          <div class="jd-info-item"><div class="lbl">المسمى الوظيفي</div><div class="val">${esc(m.jobTitleAr)||'—'}</div></div>
+          <div class="jd-info-item"><div class="lbl">القسم</div><div class="val">${esc(m.department)||'—'}</div></div>
+          <div class="jd-info-item"><div class="lbl">الإدارة</div><div class="val">${esc(m.admin)}</div></div>
+          <div class="jd-info-item"><div class="lbl">الرئيس المباشر</div><div class="val">${esc(m.directManager)}</div></div>
+          <div class="jd-info-item"><div class="lbl">موقع العمل</div><div class="val">${esc(m.workLocation)}</div></div>
+          <div class="jd-side-title" style="margin-top:24px">متطلبات الوظيفة</div>
+          ${jdCheckList(m.requirements).replace('grid-template-columns:1fr 1fr','grid-template-columns:1fr')}
+          ${valuesList.length ? `<div class="jd-side-title" style="margin-top:24px">قيمنا</div><div class="jd-values">${valuesList.map(v=>`<span>${esc(v)}</span>`).join('')}</div>` : ''}
+        </div>
+        <div class="jd-main">
+          <div class="jd-section">
+            <div class="jd-section-title">🎯 الهدف العام من الوظيفة</div>
+            <div class="jd-objective">${esc(m.objective)||'لم يُذكر الهدف بعد'}</div>
+          </div>
+          <div class="jd-section">
+            <div class="jd-section-title">💼 المهام والمسؤوليات</div>
+            ${jdNumList(m.responsibilities)}
+          </div>
+          ${(m.otherDuties || m.authorities) ? `<div class="jd-two-col">
+            ${m.otherDuties ? `<div class="jd-mini-box"><h4>مهام أخرى</h4><p>${esc(m.otherDuties)}</p></div>` : '<div></div>'}
+            ${m.authorities ? `<div class="jd-mini-box"><h4>الصلاحيات ونطاق العمل</h4><p>${esc(m.authorities)}</p></div>` : '<div></div>'}
+          </div>` : ''}
+        </div>
+      </div>
+      ${docFooter({company:m.company})}`;
+  }
+};
 
 const FORM_AQD_MAWAD = {
   id:'aqd-mawad', cat:'contracts', titleAr:'عقد عمل - بيت هايل لمواد البناء',
@@ -1346,6 +1425,8 @@ const FORMS = [
   FORM_TAAREEF_SAFARA, FORM_TAAREEF_RATIB_SAFARAT, FORM_ADAM_MUMANAA, FORM_TAAREEF_RATIB, FORM_TAAREEF_TATHBEET_RIYAD, FORM_TAAREEF_TATHBEET_ALINMA, FORM_TAAREEF_TATHBEET_RATIB, FORM_TAAREEF_MUWAZAF_EOS,
   // عقود العمل
   FORM_AQD_MAWAD, FORM_AQD_NAQLIYAT, FORM_AQD_SIYANA, FORM_AQD_MAWAD_AMOLA, FORM_AQD_NAQLIYAT_AMOLA, FORM_AQD_TASHEERA,
+  // الوصف الوظيفي
+  FORM_JOB_DESCRIPTION,
   // إنهاء الخدمة وإخلاء الطرف
   FORM_IKHLA_TARAF, FORM_IKHLA_TARAF_CHECKLIST, FORM_NON_RENEWAL_RESIDENT, FORM_NON_RENEWAL_SAUDI, FORM_NON_RENEWAL_EMPLOYEE,
   FORM_TERM_PROBATION, FORM_TERM_MUTUAL, FORM_TERM_RELATIONSHIP, FORM_RESIGN, FORM_RESIGN_PROBATION,

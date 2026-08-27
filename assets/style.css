@@ -243,6 +243,36 @@ table.sct-table{width:100%;border-collapse:collapse;margin-bottom:14px;}
 .sct-table tr.shaded td{background:#ececec;}
 .sct-footer-name{text-align:center;font-weight:800;font-size:13.5px;margin-top:16px;line-height:1.6;}
 
+/* قالب الوصف الوظيفي */
+.jd-header{background:var(--ink);color:#fff;padding:24px 28px;border-radius:10px 10px 0 0;display:flex;justify-content:space-between;align-items:center;gap:20px;}
+.jd-header img{height:46px;filter:invert(1) brightness(2);}
+.jd-header .titles{text-align:left;}
+.jd-header h1{font-size:20px;margin:0 0 4px;font-weight:800;}
+.jd-header h2{font-size:14px;margin:0;color:var(--sand-light);font-weight:600;}
+.jd-header .dept{font-size:12px;color:#c9c2b3;margin-top:6px;}
+.jd-body{display:flex;gap:0;border:1px solid var(--line);border-top:none;border-radius:0 0 10px 10px;overflow:hidden;}
+.jd-sidebar{width:32%;background:#faf8f4;padding:20px 16px;border-inline-end:1px solid var(--line);}
+.jd-main{flex:1;padding:20px 22px;}
+.jd-side-title{font-size:12.5px;font-weight:800;color:var(--sand);text-transform:uppercase;letter-spacing:.04em;margin:0 0 12px;padding-bottom:6px;border-bottom:2px solid var(--sand);}
+.jd-info-item{margin-bottom:14px;}
+.jd-info-item .lbl{font-size:11px;color:#999;font-weight:700;margin-bottom:2px;}
+.jd-info-item .val{font-size:13px;color:var(--ink);font-weight:700;}
+.jd-values{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+.jd-values span{background:var(--sand-light);color:var(--ink);font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;}
+.jd-section{margin-bottom:20px;}
+.jd-section-title{display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:800;color:var(--ink);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--line);}
+.jd-objective{font-size:12.5px;line-height:1.9;color:var(--ink-soft);background:var(--sand-light);padding:12px 14px;border-radius:8px;}
+.jd-num-list{list-style:none;margin:0;padding:0;counter-reset:jd;}
+.jd-num-list li{display:flex;gap:10px;font-size:12.5px;line-height:1.8;margin-bottom:8px;align-items:flex-start;}
+.jd-num-list li b{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--sand);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:800;}
+.jd-check-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;}
+.jd-check-list li{font-size:12px;line-height:1.7;display:flex;gap:6px;align-items:flex-start;}
+.jd-check-list li:before{content:"✓";color:var(--ok);font-weight:800;flex-shrink:0;}
+.jd-two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.jd-mini-box{background:#faf8f4;border:1px solid var(--line);border-radius:8px;padding:14px;}
+.jd-mini-box h4{font-size:12.5px;margin:0 0 8px;font-weight:800;color:var(--ink);}
+.jd-mini-box p{font-size:11.5px;line-height:1.8;color:var(--ink-soft);margin:0;}
+
 /* ---------- Login screen ---------- */
 .login-screen{
   min-height:100vh;display:flex;align-items:center;justify-content:center;
