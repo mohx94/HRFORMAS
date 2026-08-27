@@ -342,3 +342,24 @@ table.jo-table{width:100%;border-collapse:collapse;margin:0 0 14px;font-size:14p
 .jo-plain{font-size:14.5px;line-height:2;margin-bottom:10px;text-align:right;}
 .jo-signrow{margin:22px 0 0;font-size:14.5px;line-height:2.5;}
 .jo-footer{display:flex;justify-content:space-between;margin-top:70px;font-weight:800;font-size:14px;page-break-inside:avoid;}
+.jo-page{position:relative;}
+.jo-page::before{
+  content:"";
+  position:absolute;
+  top:-16mm;left:-16mm;
+  width:105mm;height:80mm;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><path d='M22 2 L42 22 L22 42 L2 22 Z' fill='none' stroke='%23d9d3c2' stroke-width='1.2'/></svg>");
+  background-repeat:repeat;
+  z-index:0;
+  pointer-events:none;
+}
+.jo-page::after{
+  content:"";
+  position:absolute;
+  top:-16mm;left:-16mm;
+  width:105mm;height:80mm;
+  background:linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.55) 55%, rgba(255,255,255,1) 82%);
+  z-index:0;
+  pointer-events:none;
+}
+.jo-content{position:relative;z-index:1;}

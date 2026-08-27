@@ -1473,6 +1473,7 @@ const FORM_JOB_OFFER = {
     const notes = (m.salaryNotes||'').split('\n').map(s=>s.trim()).filter(Boolean);
 
     return `
+      <div class="jo-page"><div class="jo-content">
       <div class="jo-header"><img src="assets/logo.png" alt=""></div>
 
       <div class="jo-title-band">
@@ -1525,7 +1526,8 @@ const FORM_JOB_OFFER = {
       <div class="jo-footer">
         <span>المدير التنفيذي</span>
         <span>مدير إدارة الموارد البشرية</span>
-      </div>`;
+      </div>
+      </div></div>`;
   }
 };
 
