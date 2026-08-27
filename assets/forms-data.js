@@ -985,6 +985,7 @@ const FORM_SETTLEMENT_DATA = {
     const {y,mo,d} = (()=>{ const r=yearsToYMD(num(emp.serviceYears)); return {y:r.y,mo:r.m,d:r.d}; })();
     const total = num(m.vacationAmount)+num(m.workdaysAmount)+num(m.eosAmount)-num(m.penalty)-num(m.deductions);
     return `
+      <div class="compact-doc">
       ${docHeader(emp,'بيانات تسوية مستحقات الموظف','Employee Entitlements Settlement Data')}
       <div class="row">${kv('تاريخ اليوم', m.date?fmtDate(m.date):todayStr())}</div>
       <div class="section-title">معلومات الموظف</div>
@@ -1008,8 +1009,9 @@ const FORM_SETTLEMENT_DATA = {
           <tr><td><b>الصافي النهائي</b></td><td><b>${money(total)}</b></td></tr>
         </tbody>
       </table>
-      <div class="sign-grid" style="margin-top:40px">${signBox('الموارد البشرية')}${signBox('الإدارة المالية')}${signBox('الموظف')}</div>
-      ${docFooter(emp)}`;
+      <div class="sign-grid" style="margin-top:22px">${signBox('الموارد البشرية')}${signBox('الإدارة المالية')}${signBox('الموظف')}</div>
+      ${docFooter(emp)}
+      </div>`;
   }
 };
 
@@ -1107,6 +1109,7 @@ const FORM_VACATION_DUES = {
   render(emp,m){
     const {y,m:mo,d} = dateDiffYMD(m.startWork||emp.joinDate, m.lastDay);
     return `
+      <div class="compact-doc">
       ${docHeader(emp,'طلب صرف مستحقات إجازة','Vacation Benefits Request')}
       <div class="row">${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}</div>
       <div class="row">${kv('الاسم', emp.nameAr)}${kv('الوظيفة', emp.jobTitleAr)}${kv('الرقم الوظيفي', emp.jobNo)}${kv('الجنسية', emp.nationalityAr)}</div>
@@ -1120,9 +1123,10 @@ const FORM_VACATION_DUES = {
         <tbody><tr><td>${y}</td><td>${mo}</td><td>${d}</td></tr></tbody></table>
       <div class="section-title">تفاصيل السفر</div>
       <div class="row">${kv('الرحلة من', m.ticketFrom)}${kv('الرحلة إلى', m.ticketTo)}${kv('سعر التذكرة', money(m.ticketAmount))}</div>
-      <div class="sign-grid" style="margin-top:40px">${signBox('توقيع الإدارة')}${signBox('توقيع الموارد البشرية')}${signBox('توقيع الإدارة المالية')}</div>
-      <div class="sign-grid two" style="margin-top:20px">${signBox('توقيع الموظف')}<div></div></div>
-      ${docFooter(emp)}`;
+      <div class="sign-grid" style="margin-top:22px">${signBox('توقيع الإدارة')}${signBox('توقيع الموارد البشرية')}${signBox('توقيع الإدارة المالية')}</div>
+      <div class="sign-grid two" style="margin-top:14px">${signBox('توقيع الموظف')}<div></div></div>
+      ${docFooter(emp)}
+      </div>`;
   }
 };
 
@@ -1421,6 +1425,7 @@ const FORM_INVESTIGATION_RECORD = {
   ],
   render(emp,m){
     return `
+      <div class="compact-doc">
       ${docHeader(emp,'محضر تحقيق')}
       <div class="row">${kv('الاسم', emp.nameAr)}${kv('الرقم الوظيفي', emp.jobNo)}</div>
       <div class="row">${kv('الوظيفة', emp.jobTitleAr)}${kv('الجنسية', emp.nationalityAr)}</div>
@@ -1429,8 +1434,9 @@ const FORM_INVESTIGATION_RECORD = {
       <div class="section-title">ما هو قولك فيما هو منسوب إليك؟</div><p class="para">${esc(m.q1)||'<span class="tag-empty">—</span>'}</p>
       <div class="section-title">هل هذا التصرف يُعتبر صحيحاً؟</div><p class="para">${esc(m.q2)||'<span class="tag-empty">—</span>'}</p>
       <div class="section-title">هل هنالك أقوال أخرى؟</div><p class="para">${esc(m.q3)||'<span class="tag-empty">—</span>'}</p>
-      <div class="sign-grid two" style="margin-top:60px">${signBox('توقيع الموظف على أقواله')}${signBox('توقيع لجنة التحقيق')}</div>
-      ${docFooter(emp)}`;
+      <div class="sign-grid two" style="margin-top:26px">${signBox('توقيع الموظف على أقواله')}${signBox('توقيع لجنة التحقيق')}</div>
+      ${docFooter(emp)}
+      </div>`;
   }
 };
 
