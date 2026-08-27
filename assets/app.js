@@ -379,55 +379,6 @@ function renderSheet(){
     return;
   }
   sheetEl.innerHTML = currentForm.render(currentEmployee, manualValues);
-  if(sheetEl.querySelector('.ct-flow')){
-    paginateCtFlow(sheetEl);
-  }
-}
-
-/* ---------------- تقسيم صفحات العقد ديناميكياً حسب المحتوى الفعلي ---------------- */
-function paginateCtFlow(sheetEl){
-  const flow = sheetEl.querySelector('.ct-flow');
-  if(!flow) return;
-  const children = Array.from(flow.children);
-  if(children.length === 0) return;
-
-  // قياس ارتفاع صفحة A4 القابلة للاستخدام (بنفس نسبة عرض المحتوى الحالي)
-  const probe = document.createElement('div');
-  probe.style.cssText = 'height:265mm;width:0;position:absolute;visibility:hidden;';
-  sheetEl.appendChild(probe);
-  const pageHeightPx = probe.offsetHeight;
-  sheetEl.removeChild(probe);
-
-  // ارتفاع الشعار (يُضاف تلقائياً بأعلى كل صفحة)
-  const logoProbe = document.createElement('div');
-  logoProbe.innerHTML = ctLogo();
-  logoProbe.style.cssText = 'position:absolute;visibility:hidden;';
-  sheetEl.appendChild(logoProbe);
-  const logoHeightPx = logoProbe.offsetHeight;
-  sheetEl.removeChild(logoProbe);
-
-  const pages = [];
-  let current = [];
-  let currentHeight = logoHeightPx;
-  children.forEach(child=>{
-    const h = child.offsetHeight;
-    if(current.length > 0 && currentHeight + h > pageHeightPx){
-      pages.push(current);
-      current = [];
-      currentHeight = logoHeightPx;
-    }
-    current.push(child);
-    currentHeight += h;
-  });
-  if(current.length) pages.push(current);
-
-  const newHtml = pages.map((blockEls, i)=>{
-    const breakStyle = i < pages.length - 1 ? 'page-break-after:always;break-after:page;' : '';
-    const inner = ctLogo() + blockEls.map(el=>el.outerHTML).join('');
-    return `<div class="ct-page" style="${breakStyle}overflow:hidden;">${inner}</div>`;
-  }).join('');
-
-  flow.outerHTML = newHtml;
 }
 
 /* ---------------- عناصر مشتركة للنموذج المطبوع ---------------- */
