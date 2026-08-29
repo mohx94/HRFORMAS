@@ -162,6 +162,8 @@ function renderLogin(){
 }
 
 /* ---------------- الهيكل الرئيسي ---------------- */
+let sidebarActiveCat = null;
+
 function renderShell(){
   document.getElementById('root').innerHTML = `
     <div id="app">
@@ -200,21 +202,62 @@ function renderSidebar(){
 function renderSidebarList(query){
   const listEl = document.getElementById('sidebarList');
   const q = query.toLowerCase();
-  let html = '';
-  let anyMatch = false;
-  CATEGORIES.forEach(cat=>{
-    const forms = FORMS.filter(f=>f.cat===cat.id && (!q || f.titleAr.toLowerCase().includes(q)));
-    if(forms.length===0) return;
-    anyMatch = true;
-    html += `<h3>${cat.title}</h3>`;
-    forms.forEach(f=>{
-      html += `<button class="nav-item" data-id="${f.id}">${f.titleAr}</button>`;
+
+  // بحث نشط: عرض نتائج مسطّحة عبر كل التصنيفات
+  if(q){
+    let html = '';
+    let anyMatch = false;
+    CATEGORIES.forEach(cat=>{
+      const forms = FORMS.filter(f=>f.cat===cat.id && f.titleAr.toLowerCase().includes(q));
+      if(forms.length===0) return;
+      anyMatch = true;
+      html += `<h3>${cat.title}</h3>`;
+      forms.forEach(f=>{
+        html += `<button class="nav-item" data-id="${f.id}">${f.titleAr}</button>`;
+      });
     });
-  });
-  if(!anyMatch){
-    html = `<div class="no-results" style="padding:16px 4px">لا توجد نتائج</div>`;
+    listEl.innerHTML = anyMatch ? html : `<div class="no-results" style="padding:16px 4px">لا توجد نتائج</div>`;
+    bindNavItems(listEl);
+    return;
   }
+
+  // لا يوجد بحث: تصنيفات رئيسية، أو نماذج التصنيف المحدد
+  if(!sidebarActiveCat){
+    let html = '';
+    CATEGORIES.forEach(cat=>{
+      const forms = FORMS.filter(f=>f.cat===cat.id);
+      if(forms.length===0) return;
+      html += `<button class="nav-cat" data-cat="${cat.id}">
+        <span>${cat.title}</span>
+        <span class="count">${forms.length}</span>
+      </button>`;
+    });
+    listEl.innerHTML = html;
+    listEl.querySelectorAll('.nav-cat').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        sidebarActiveCat = btn.dataset.cat;
+        renderSidebarList('');
+      });
+    });
+    return;
+  }
+
+  const cat = CATEGORIES.find(c=>c.id===sidebarActiveCat);
+  const forms = FORMS.filter(f=>f.cat===sidebarActiveCat);
+  let html = `<button class="nav-back" id="navBack">→ كل التصنيفات</button>
+    <div class="nav-cat-title">${cat ? cat.title : ''}</div>`;
+  forms.forEach(f=>{
+    html += `<button class="nav-item" data-id="${f.id}">${f.titleAr}</button>`;
+  });
   listEl.innerHTML = html;
+  document.getElementById('navBack').addEventListener('click', ()=>{
+    sidebarActiveCat = null;
+    renderSidebarList('');
+  });
+  bindNavItems(listEl);
+}
+
+function bindNavItems(listEl){
   listEl.querySelectorAll('.nav-item').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       listEl.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
@@ -225,13 +268,26 @@ function renderSidebarList(query){
   });
 }
 
+/* يزامن القائمة الجانبية مع نموذج تم فتحه من الصفحة الرئيسية */
+function syncSidebarToForm(form){
+  sidebarActiveCat = form.cat;
+  renderSidebarList('');
+  const listEl = document.getElementById('sidebarList');
+  if(!listEl) return;
+  const btn = listEl.querySelector(`.nav-item[data-id="${form.id}"]`);
+  if(btn) btn.classList.add('active');
+}
+
+let homeActiveCat = null;
+
 function renderWelcome(){
+  homeActiveCat = null;
   const main = document.getElementById('main');
   let html = `
     <div class="welcome">
       <img src="assets/logo.png" alt="">
       <h1>منصة نماذج الموارد البشرية</h1>
-      <p>اختر نموذجاً من القائمة أدناه، أو من القائمة الجانبية. حدد الموظف وستُعبّى بياناته تلقائياً، ثم أكمل الحقول الخاصة بالحالة واطبع مباشرة بصيغة A4.</p>
+      <p>اختر تصنيفاً من القائمة أدناه، أو من القائمة الجانبية. حدد الموظف وستُعبّى بياناته تلقائياً، ثم أكمل الحقول الخاصة بالحالة واطبع مباشرة بصيغة A4.</p>
     </div>
     <div class="search-bar">
       <input type="text" id="formSearch" placeholder="ابحث عن نموذج بالاسم...">
@@ -245,37 +301,81 @@ function renderWelcome(){
   });
 }
 
-function renderFormsDirectory(query){
-  const el = document.getElementById('formsDirectory');
-  const q = query.toLowerCase();
-  let html = '';
-  let anyMatch = false;
-  CATEGORIES.forEach(cat=>{
-    const forms = FORMS.filter(f=>f.cat===cat.id && (!q || f.titleAr.toLowerCase().includes(q)));
-    if(forms.length===0) return;
-    anyMatch = true;
-    html += `<div class="home-cat"><h3>${cat.title}</h3><div class="home-grid">`;
-    forms.forEach(f=>{
-      html += `<button class="form-card" data-id="${f.id}">
-        <span class="name">${f.titleAr}</span>
-        ${f.standalone?'<span class="badge">تعبئة يدوية</span>':''}
-      </button>`;
-    });
-    html += `</div></div>`;
-  });
-  if(!anyMatch){
-    html = `<div class="no-results">لا توجد نماذج مطابقة لبحثك</div>`;
-  }
-  el.innerHTML = html;
+function bindFormCards(el){
   el.querySelectorAll('.form-card').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const form = FORMS.find(f=>f.id===btn.dataset.id);
-      document.querySelectorAll('.nav-item').forEach(b=>{
-        b.classList.toggle('active', b.dataset.id===form.id);
-      });
+      syncSidebarToForm(form);
       openForm(form);
     });
   });
+}
+
+function renderFormsDirectory(query){
+  const el = document.getElementById('formsDirectory');
+  const q = query.toLowerCase();
+
+  // بحث نشط: نتائج مسطّحة عبر كل التصنيفات
+  if(q){
+    let html = '';
+    let anyMatch = false;
+    CATEGORIES.forEach(cat=>{
+      const forms = FORMS.filter(f=>f.cat===cat.id && f.titleAr.toLowerCase().includes(q));
+      if(forms.length===0) return;
+      anyMatch = true;
+      html += `<div class="home-cat"><h3>${cat.title}</h3><div class="home-grid">`;
+      forms.forEach(f=>{
+        html += `<button class="form-card" data-id="${f.id}">
+          <span class="name">${f.titleAr}</span>
+          ${f.standalone?'<span class="badge">تعبئة يدوية</span>':''}
+        </button>`;
+      });
+      html += `</div></div>`;
+    });
+    el.innerHTML = anyMatch ? html : `<div class="no-results">لا توجد نماذج مطابقة لبحثك</div>`;
+    bindFormCards(el);
+    return;
+  }
+
+  // لا يوجد بحث: تصنيفات رئيسية، أو نماذج التصنيف المحدد
+  if(!homeActiveCat){
+    let html = '<div class="home-cat-grid">';
+    CATEGORIES.forEach(cat=>{
+      const forms = FORMS.filter(f=>f.cat===cat.id);
+      if(forms.length===0) return;
+      html += `<button class="home-cat-card" data-cat="${cat.id}">
+        <span class="name">${cat.title}</span>
+        <span class="count">${forms.length} نموذج</span>
+      </button>`;
+    });
+    html += '</div>';
+    el.innerHTML = html;
+    el.querySelectorAll('.home-cat-card').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        homeActiveCat = btn.dataset.cat;
+        renderFormsDirectory('');
+      });
+    });
+    return;
+  }
+
+  const cat = CATEGORIES.find(c=>c.id===homeActiveCat);
+  const forms = FORMS.filter(f=>f.cat===homeActiveCat);
+  let html = `<button class="home-back" id="homeBack">→ كل التصنيفات</button>
+    <div class="home-cat"><h3>${cat ? cat.title : ''}</h3><div class="home-grid">`;
+  forms.forEach(f=>{
+    html += `<button class="form-card" data-id="${f.id}">
+      <span class="name">${f.titleAr}</span>
+      ${f.standalone?'<span class="badge">تعبئة يدوية</span>':''}
+    </button>`;
+  });
+  html += `</div></div>`;
+  el.innerHTML = html;
+  document.getElementById('homeBack').addEventListener('click', ()=>{
+    homeActiveCat = null;
+    renderFormsDirectory('');
+  });
+  bindFormCards(el);
 }
 
 /* ---------------- فتح نموذج ---------------- */
