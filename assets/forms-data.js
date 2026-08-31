@@ -864,22 +864,26 @@ const FORM_NON_RENEWAL_SAUDI = nonRenewalNotice('non-renewal-saudi','إشعار 
 const FORM_NON_RENEWAL_EMPLOYEE = nonRenewalNotice('non-renewal-employee','إشعار عدم رغبة الموظف بتجديد العقد','employee');
 
 const FORM_TERM_PROBATION = {
-  id:'term-probation', cat:'termination', titleAr:'إنهاء العقد خلال فترة التجربة',
+  id:'term-probation', cat:'termination', titleAr:'إشعار بإنهاء عقد العمل خلال فترة التجربة',
   manualFields:[
     {key:'date', label:'التاريخ', type:'date', default:()=>new Date().toISOString().slice(0,10)},
     {key:'startWorkDate', label:'تاريخ مباشرة العمل', type:'date', default: e=>e?.joinDate},
     {key:'lastDay', label:'آخر يوم عمل', type:'date'},
   ],
   render(emp,m){
+    const co = companyOf(emp);
     return `
-      ${docHeader(emp,'إنهاء العقد خلال فترة التجربة')}
+      ${docHeader(emp,'إشعار بإنهاء عقد العمل خلال فترة التجربة')}
       <div class="row">${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}${kv('الرقم الوظيفي', emp.jobNo)}</div>
-      <div class="row">${kv('السيد/ة', emp.nameAr)}${kv('هوية رقم', emp.idNumber)}</div>
-      <p class="para">تحية طيبة، الموضوع: إنهاء العقد خلال فترة التجربة.</p>
-      <p class="para">إشارة إلى التعاقد معكم ومباشرتكم العمل بتاريخ: ${fmtDate(m.startWorkDate)}، واستناداً على المادة (53) من نظام العمل وبند فترة التجربة في عقد العمل، وحيث أنكم لا تزالون تخضعون لفترة التجربة، يؤسفنا إبلاغكم بعدم رغبة ${companyOf(emp).nameAr} في استمراركم بالعمل.</p>
-      <p class="para">وسيكون آخر يوم عمل لكم هو: <b>${m.lastDay?fmtDate(m.lastDay):'—'}</b>.</p>
-      <p class="para">شاكرين لكم ما قدمتموه من جهود خلال فترة عملكم معنا، مع تمنياتنا لكم بالتوفيق والنجاح.</p>
-      <div class="sign-grid two" style="margin-top:60px">${signBox('إدارة الموارد البشرية')}${signBox('توقيع استلام الإشعار من الموظف')}</div>
+      <div class="row">${kv('السيد/', emp.nameAr)}${kv('رقم الهوية', emp.idNumber)}</div>
+      <p class="para">السلام عليكم ورحمة الله وبركاته،،</p>
+      <p class="para">الموضوع: إنهاء عقد العمل خلال فترة التجربة</p>
+      <p class="para">إشارة إلى عقد العمل المبرم معكم ومباشرتكم العمل بتاريخ ${fmtDate(m.startWorkDate)}م، وإلى بند فترة التجربة المنصوص عليه في عقد العمل، واستنادًا إلى أحكام المادتين (53) و(54) من نظام العمل السعودي، وبناءً على حق صاحب العمل في إنهاء عقد العمل خلال فترة التجربة؛ نود إشعاركم بقرار ${co.nameAr} بإنهاء عقد العمل خلال فترة التجربة.</p>
+      <p class="para">وعليه، يكون يوم ${m.lastDay?fmtDate(m.lastDay):'—'}م هو آخر يوم عمل لكم لدى الشركة.</p>
+      <p class="para">نشكر لكم ما قدمتموه خلال فترة عملكم، ونتمنى لكم التوفيق في مسيرتكم القادمة.</p>
+      <p class="para">وتقبلوا تحياتنا،،</p>
+      <p class="para"><b>${co.nameAr}</b></p>
+      <div style="margin-top:60px;width:260px">${signBox('إدارة الموارد البشرية')}</div>
       ${docFooter(emp)}`;
   }
 };
