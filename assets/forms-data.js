@@ -972,6 +972,7 @@ const FORM_SETTLEMENT_DATA = {
   id:'settlement-data', cat:'termination', titleAr:'بيانات تسوية مستحقات الموظف',
   manualFields:[
     {key:'date', label:'تاريخ اليوم', type:'date', default:()=>new Date().toISOString().slice(0,10)},
+    {key:'joinDateManual', label:'تاريخ الالتحاق', type:'date', default: e=>e?.joinDate},
     {key:'reason', label:'سبب ترك العمل', type:'text'},
     {key:'lastDay', label:'آخر يوم عمل', type:'date'},
     {key:'serviceYears', label:'مدة الخدمة - سنوات', type:'number'},
@@ -988,14 +989,18 @@ const FORM_SETTLEMENT_DATA = {
   render(emp,m){
     const total = num(m.vacationAmount)+num(m.workdaysAmount)+num(m.eosAmount)-num(m.penalty)-num(m.deductions);
     return `
+      <div class="compact">
       ${docHeader(emp,'بيانات تسوية مستحقات الموظف','Employee Entitlements Settlement Data')}
       <div class="row">${kv('تاريخ اليوم', m.date?fmtDate(m.date):todayStr())}</div>
       <div class="section-title">معلومات الموظف</div>
       <div class="row">${kv('الاسم', emp.nameAr)}${kv('الرقم الوظيفي', emp.jobNo)}</div>
       <div class="row">${kv('الوظيفة', emp.jobTitleAr)}${kv('الجنسية', emp.nationalityAr)}</div>
       <div class="row">${kv('القسم', emp.deptAr)}${kv('سبب ترك العمل', m.reason)}</div>
-      <div class="row">${kv('تاريخ الالتحاق', fmtDate(emp.joinDate))}${kv('آخر يوم عمل', m.lastDay?fmtDate(m.lastDay):fmtDate(emp.releaseDate))}</div>
-      <div class="row">${kv('مدة الخدمة', `${m.serviceYears||0} سنة، ${m.serviceMonths||0} شهر، ${m.serviceDays||0} يوم`)}${kv('رصيد الإجازة السنوية', m.annualLeaveBalance)}${kv('رصيد إجازة بدون راتب', m.unpaidLeaveBalance)}</div>
+      <div class="row">${kv('تاريخ الالتحاق', m.joinDateManual?fmtDate(m.joinDateManual):fmtDate(emp.joinDate))}${kv('آخر يوم عمل', m.lastDay?fmtDate(m.lastDay):fmtDate(emp.releaseDate))}</div>
+      <div class="row">${kv('رصيد الإجازة السنوية', m.annualLeaveBalance)}${kv('رصيد إجازة بدون راتب', m.unpaidLeaveBalance)}</div>
+      <div class="section-title">مدة الخدمة</div>
+      <table class="doc-table"><thead><tr><th>سنوات</th><th>أشهر</th><th>أيام</th></tr></thead>
+        <tbody><tr><td>${m.serviceYears||0}</td><td>${m.serviceMonths||0}</td><td>${m.serviceDays||0}</td></tr></tbody></table>
       <div class="section-title">تفصيل الراتب</div>
       <table class="doc-table"><thead><tr><th>الأساسي</th><th>السكن</th><th>النقل</th><th>أخرى</th><th>الإجمالي</th></tr></thead>
         <tbody><tr><td>${money(emp.basic)}</td><td>${money(emp.housing)}</td><td>${money(emp.transport)}</td><td>${money(emp.living)}</td><td><b>${money(emp.total)}</b></td></tr></tbody></table>
@@ -1012,7 +1017,8 @@ const FORM_SETTLEMENT_DATA = {
         </tbody>
       </table>
       <div class="sign-grid" style="margin-top:40px">${signBox('الموارد البشرية')}${signBox('الإدارة المالية')}${signBox('الموظف')}</div>
-      ${docFooter(emp)}`;
+      ${docFooter(emp)}
+      </div>`;
   }
 };
 
