@@ -977,6 +977,8 @@ const FORM_SETTLEMENT_DATA = {
     {key:'serviceYears', label:'مدة الخدمة - سنوات', type:'number'},
     {key:'serviceMonths', label:'مدة الخدمة - أشهر', type:'number'},
     {key:'serviceDays', label:'مدة الخدمة - أيام', type:'number'},
+    {key:'annualLeaveBalance', label:'رصيد الإجازة السنوية', type:'number', default: e=>e?.annualLeave},
+    {key:'unpaidLeaveBalance', label:'رصيد إجازة بدون راتب', type:'number'},
     {key:'vacationAmount', label:'مبلغ بدل الإجازة (ر.س)', type:'number'},
     {key:'workdaysAmount', label:'مبلغ أيام العمل (ر.س)', type:'number'},
     {key:'eosAmount', label:'مكافأة نهاية الخدمة (ر.س)', type:'number'},
@@ -993,7 +995,7 @@ const FORM_SETTLEMENT_DATA = {
       <div class="row">${kv('الوظيفة', emp.jobTitleAr)}${kv('الجنسية', emp.nationalityAr)}</div>
       <div class="row">${kv('القسم', emp.deptAr)}${kv('سبب ترك العمل', m.reason)}</div>
       <div class="row">${kv('تاريخ الالتحاق', fmtDate(emp.joinDate))}${kv('آخر يوم عمل', m.lastDay?fmtDate(m.lastDay):fmtDate(emp.releaseDate))}</div>
-      <div class="row">${kv('مدة الخدمة', `${m.serviceYears||0} سنة، ${m.serviceMonths||0} شهر، ${m.serviceDays||0} يوم`)}${kv('رصيد الإجازة السنوية', emp.annualLeave)}</div>
+      <div class="row">${kv('مدة الخدمة', `${m.serviceYears||0} سنة، ${m.serviceMonths||0} شهر، ${m.serviceDays||0} يوم`)}${kv('رصيد الإجازة السنوية', m.annualLeaveBalance)}${kv('رصيد إجازة بدون راتب', m.unpaidLeaveBalance)}</div>
       <div class="section-title">تفصيل الراتب</div>
       <table class="doc-table"><thead><tr><th>الأساسي</th><th>السكن</th><th>النقل</th><th>أخرى</th><th>الإجمالي</th></tr></thead>
         <tbody><tr><td>${money(emp.basic)}</td><td>${money(emp.housing)}</td><td>${money(emp.transport)}</td><td>${money(emp.living)}</td><td><b>${money(emp.total)}</b></td></tr></tbody></table>
