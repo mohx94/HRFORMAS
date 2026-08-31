@@ -1,7 +1,6 @@
 /* ===== بيت هايل - تعريف جميع النماذج ===== */
 
 const CATEGORIES = [
-  {id:'recruitment',  title:'التوظيف والعروض الوظيفية'},
   {id:'certificates', title:'الشهادات والتعريفات'},
   {id:'contracts',    title:'عقود العمل'},
   {id:'jobdesc',      title:'الوصف الوظيفي'},
@@ -592,7 +591,7 @@ const CONTRACT_MANUAL_FIELDS = [
 ];
 
 /* ============================================================
-   الوصف الوظيفي - تصميم رسمي منسّق بنفس هوية النظام
+   الوصف الوظيفي
    ============================================================ */
 function jdListToItems(text){
   return (text||'').split('\n').map(s=>s.trim()).filter(Boolean);
@@ -600,7 +599,7 @@ function jdListToItems(text){
 function jdNumList(text){
   const items = jdListToItems(text);
   if(!items.length) return '<p class="jd-empty">لم تُذكر بنود بعد</p>';
-  return `<ol class="jd-num-list">${items.map(it=>`<li>${esc(it)}</li>`).join('')}</ol>`;
+  return `<ol class="jd-num-list">${items.map((it,i)=>`<li><b>${i+1}</b><span>${esc(it)}</span></li>`).join('')}</ol>`;
 }
 function jdReqList(text){
   const items = jdListToItems(text);
@@ -627,29 +626,53 @@ const FORM_JOB_DESCRIPTION = {
     {key:'values', label:'قيمنا (مفصولة بفاصلة)', type:'text', default:'الالتزام، الاحترافية، الابتكار، الجودة'},
   ],
   render(emp, m){
+    const co = COMPANIES[m.company] || DEFAULT_COMPANY;
     const valuesList = (m.values||'').split(/[،,]/).map(s=>s.trim()).filter(Boolean);
     return `
-      ${docHeader({company:m.company}, 'الوصف الوظيفي', 'Job Description')}
-
-      <div class="row">${kv('المسمى الوظيفي', m.jobTitleAr)}<div class="kv" dir="ltr" style="text-align:left"><b>Job Title:</b> <span class="val">${orDash(m.jobTitleEn)}</span></div></div>
-      <div class="row">${kv('القسم', m.department)}${kv('الإدارة', m.admin)}</div>
-      <div class="row">${kv('الرئيس المباشر', m.directManager)}${kv('موقع العمل', m.workLocation)}</div>
-
-      <div class="section-title">الهدف العام من الوظيفة</div>
-      <p class="para">${esc(m.objective)||'<span class="tag-empty">—</span>'}</p>
-
-      <div class="section-title">المهام والمسؤوليات الرئيسية</div>
-      ${jdNumList(m.responsibilities)}
-
-      <div class="section-title">متطلبات ومؤهلات الوظيفة</div>
-      ${jdReqList(m.requirements)}
-
-      ${m.otherDuties ? `<div class="section-title">مهام أخرى</div><p class="para">${esc(m.otherDuties)}</p>` : ''}
-      ${m.authorities ? `<div class="section-title">الصلاحيات ونطاق العمل</div><p class="para">${esc(m.authorities)}</p>` : ''}
-
-      ${valuesList.length ? `<div class="jd-values-row"><b>القيم المؤسسية:</b> ${valuesList.join(' • ')}</div>` : ''}
-
-      <div class="sign-grid">${signBox('إعداد<br>الموارد البشرية')}${signBox('مراجعة<br>الرئيس المباشر')}${signBox('اعتماد<br>الإدارة العليا')}</div>
+      <div class="jd-header">
+        <img src="assets/logo.png" alt="">
+        <div class="titles">
+          <h1>${esc(m.jobTitleAr)||'المسمى الوظيفي'}</h1>
+          ${m.jobTitleEn ? `<h2>${esc(m.jobTitleEn)}</h2>` : ''}
+          ${m.department ? `<div class="dept">${esc(m.department)}</div>` : ''}
+        </div>
+      </div>
+      <div class="jd-body">
+        <div class="jd-sidebar">
+          <div>
+            <div class="jd-side-title">بيانات الوظيفة</div>
+            <div class="jd-info-grid">
+              <div class="jd-info-item"><div class="lbl">المسمى الوظيفي</div><div class="val">${esc(m.jobTitleAr)||'—'}</div></div>
+              <div class="jd-info-item"><div class="lbl">القسم</div><div class="val">${esc(m.department)||'—'}</div></div>
+              <div class="jd-info-item"><div class="lbl">الإدارة</div><div class="val">${esc(m.admin)}</div></div>
+              <div class="jd-info-item"><div class="lbl">الرئيس المباشر</div><div class="val">${esc(m.directManager)}</div></div>
+              <div class="jd-info-item"><div class="lbl">موقع العمل</div><div class="val">${esc(m.workLocation)}</div></div>
+            </div>
+          </div>
+          <div>
+            <div class="jd-side-title">متطلبات الوظيفة</div>
+            ${jdReqList(m.requirements)}
+          </div>
+          ${valuesList.length ? `<div>
+            <div class="jd-side-title">قيمنا</div>
+            <div class="jd-values">${valuesList.map(v=>`<span>${esc(v)}</span>`).join('')}</div>
+          </div>` : ''}
+        </div>
+        <div class="jd-main">
+          <div>
+            <div class="jd-section-title"><span class="ic">🎯</span> الهدف العام من الوظيفة</div>
+            <div class="jd-objective">${esc(m.objective)||'لم يُذكر الهدف بعد'}</div>
+          </div>
+          <div>
+            <div class="jd-section-title"><span class="ic">💼</span> المهام والمسؤوليات</div>
+            ${jdNumList(m.responsibilities)}
+          </div>
+          ${(m.otherDuties || m.authorities) ? `<div class="jd-two-col">
+            ${m.otherDuties ? `<div class="jd-mini-box"><h4>📋 مهام أخرى</h4><p>${esc(m.otherDuties)}</p></div>` : ''}
+            ${m.authorities ? `<div class="jd-mini-box"><h4>🔑 الصلاحيات ونطاق العمل</h4><p>${esc(m.authorities)}</p></div>` : ''}
+          </div>` : ''}
+        </div>
+      </div>
       ${docFooter({company:m.company})}`;
   }
 };
@@ -951,6 +974,9 @@ const FORM_SETTLEMENT_DATA = {
     {key:'date', label:'تاريخ اليوم', type:'date', default:()=>new Date().toISOString().slice(0,10)},
     {key:'reason', label:'سبب ترك العمل', type:'text'},
     {key:'lastDay', label:'آخر يوم عمل', type:'date'},
+    {key:'serviceYears', label:'مدة الخدمة - سنوات', type:'number'},
+    {key:'serviceMonths', label:'مدة الخدمة - أشهر', type:'number'},
+    {key:'serviceDays', label:'مدة الخدمة - أيام', type:'number'},
     {key:'vacationAmount', label:'مبلغ بدل الإجازة (ر.س)', type:'number'},
     {key:'workdaysAmount', label:'مبلغ أيام العمل (ر.س)', type:'number'},
     {key:'eosAmount', label:'مكافأة نهاية الخدمة (ر.س)', type:'number'},
@@ -958,10 +984,8 @@ const FORM_SETTLEMENT_DATA = {
     {key:'deductions', label:'ذمم وخصومات (ر.س)', type:'number'},
   ],
   render(emp,m){
-    const {y,mo,d} = (()=>{ const r=yearsToYMD(num(emp.serviceYears)); return {y:r.y,mo:r.m,d:r.d}; })();
     const total = num(m.vacationAmount)+num(m.workdaysAmount)+num(m.eosAmount)-num(m.penalty)-num(m.deductions);
     return `
-      <div class="compact-doc">
       ${docHeader(emp,'بيانات تسوية مستحقات الموظف','Employee Entitlements Settlement Data')}
       <div class="row">${kv('تاريخ اليوم', m.date?fmtDate(m.date):todayStr())}</div>
       <div class="section-title">معلومات الموظف</div>
@@ -969,7 +993,7 @@ const FORM_SETTLEMENT_DATA = {
       <div class="row">${kv('الوظيفة', emp.jobTitleAr)}${kv('الجنسية', emp.nationalityAr)}</div>
       <div class="row">${kv('القسم', emp.deptAr)}${kv('سبب ترك العمل', m.reason)}</div>
       <div class="row">${kv('تاريخ الالتحاق', fmtDate(emp.joinDate))}${kv('آخر يوم عمل', m.lastDay?fmtDate(m.lastDay):fmtDate(emp.releaseDate))}</div>
-      <div class="row">${kv('مدة الخدمة', `${y} سنة، ${mo} شهر، ${d} يوم`)}${kv('رصيد الإجازة السنوية', emp.annualLeave)}</div>
+      <div class="row">${kv('مدة الخدمة', `${m.serviceYears||0} سنة، ${m.serviceMonths||0} شهر، ${m.serviceDays||0} يوم`)}${kv('رصيد الإجازة السنوية', emp.annualLeave)}</div>
       <div class="section-title">تفصيل الراتب</div>
       <table class="doc-table"><thead><tr><th>الأساسي</th><th>السكن</th><th>النقل</th><th>أخرى</th><th>الإجمالي</th></tr></thead>
         <tbody><tr><td>${money(emp.basic)}</td><td>${money(emp.housing)}</td><td>${money(emp.transport)}</td><td>${money(emp.living)}</td><td><b>${money(emp.total)}</b></td></tr></tbody></table>
@@ -985,9 +1009,8 @@ const FORM_SETTLEMENT_DATA = {
           <tr><td><b>الصافي النهائي</b></td><td><b>${money(total)}</b></td></tr>
         </tbody>
       </table>
-      <div class="sign-grid" style="margin-top:22px">${signBox('الموارد البشرية')}${signBox('الإدارة المالية')}${signBox('الموظف')}</div>
-      ${docFooter(emp)}
-      </div>`;
+      <div class="sign-grid" style="margin-top:40px">${signBox('الموارد البشرية')}${signBox('الإدارة المالية')}${signBox('الموظف')}</div>
+      ${docFooter(emp)}`;
   }
 };
 
@@ -1085,7 +1108,6 @@ const FORM_VACATION_DUES = {
   render(emp,m){
     const {y,m:mo,d} = dateDiffYMD(m.startWork||emp.joinDate, m.lastDay);
     return `
-      <div class="compact-doc">
       ${docHeader(emp,'طلب صرف مستحقات إجازة','Vacation Benefits Request')}
       <div class="row">${kv('التاريخ', m.date?fmtDate(m.date):todayStr())}</div>
       <div class="row">${kv('الاسم', emp.nameAr)}${kv('الوظيفة', emp.jobTitleAr)}${kv('الرقم الوظيفي', emp.jobNo)}${kv('الجنسية', emp.nationalityAr)}</div>
@@ -1099,10 +1121,9 @@ const FORM_VACATION_DUES = {
         <tbody><tr><td>${y}</td><td>${mo}</td><td>${d}</td></tr></tbody></table>
       <div class="section-title">تفاصيل السفر</div>
       <div class="row">${kv('الرحلة من', m.ticketFrom)}${kv('الرحلة إلى', m.ticketTo)}${kv('سعر التذكرة', money(m.ticketAmount))}</div>
-      <div class="sign-grid" style="margin-top:22px">${signBox('توقيع الإدارة')}${signBox('توقيع الموارد البشرية')}${signBox('توقيع الإدارة المالية')}</div>
-      <div class="sign-grid two" style="margin-top:14px">${signBox('توقيع الموظف')}<div></div></div>
-      ${docFooter(emp)}
-      </div>`;
+      <div class="sign-grid" style="margin-top:40px">${signBox('توقيع الإدارة')}${signBox('توقيع الموارد البشرية')}${signBox('توقيع الإدارة المالية')}</div>
+      <div class="sign-grid two" style="margin-top:20px">${signBox('توقيع الموظف')}<div></div></div>
+      ${docFooter(emp)}`;
   }
 };
 
@@ -1163,6 +1184,7 @@ const FORM_ADVANCE_REQUEST = {
     {key:'requestedAmount', label:'السلفة المطلوبة (ر.س)', type:'number'},
     {key:'currentAdvanceBalance', label:'رصيد السلف الحالي (ر.س)', type:'number', default:'0'},
     {key:'monthlyDeduction', label:'الاستقطاع الشهري (ر.س)', type:'number'},
+    {key:'eosAdvance', label:'سلفة من مكافأة نهاية الخدمة (ر.س)', type:'number'},
   ],
   render(emp,m){
     return `
@@ -1177,6 +1199,7 @@ const FORM_ADVANCE_REQUEST = {
       <div class="row">${kv('تاريخ الالتحاق', fmtDate(emp.joinDate))}${kv('نهاية العقد الحالي', fmtDate(emp.contractEnd))}</div>
       <div class="section-title">تفاصيل السلفة</div>
       <div class="row">${kv('السلفة المطلوبة', money(m.requestedAmount))}${kv('رصيد السلف الحالي', money(m.currentAdvanceBalance))}${kv('الاستقطاع الشهري', money(m.monthlyDeduction))}</div>
+      <div class="row">${kv('سلفة من مكافأة نهاية الخدمة', money(m.eosAdvance))}</div>
       <div class="row" style="margin-top:16px">☐ مقبولة &nbsp;&nbsp;&nbsp; ☐ مرفوضة</div>
       <div class="sign-grid" style="margin-top:40px">${signBox('المدير المباشر')}${signBox('الموارد البشرية')}${signBox('الإدارة المالية')}</div>
       ${docFooter(emp)}`;
@@ -1401,7 +1424,6 @@ const FORM_INVESTIGATION_RECORD = {
   ],
   render(emp,m){
     return `
-      <div class="compact-doc">
       ${docHeader(emp,'محضر تحقيق')}
       <div class="row">${kv('الاسم', emp.nameAr)}${kv('الرقم الوظيفي', emp.jobNo)}</div>
       <div class="row">${kv('الوظيفة', emp.jobTitleAr)}${kv('الجنسية', emp.nationalityAr)}</div>
@@ -1410,106 +1432,8 @@ const FORM_INVESTIGATION_RECORD = {
       <div class="section-title">ما هو قولك فيما هو منسوب إليك؟</div><p class="para">${esc(m.q1)||'<span class="tag-empty">—</span>'}</p>
       <div class="section-title">هل هذا التصرف يُعتبر صحيحاً؟</div><p class="para">${esc(m.q2)||'<span class="tag-empty">—</span>'}</p>
       <div class="section-title">هل هنالك أقوال أخرى؟</div><p class="para">${esc(m.q3)||'<span class="tag-empty">—</span>'}</p>
-      <div class="sign-grid two" style="margin-top:26px">${signBox('توقيع الموظف على أقواله')}${signBox('توقيع لجنة التحقيق')}</div>
-      ${docFooter(emp)}
-      </div>`;
-  }
-};
-
-/* ============================================================
-   عرض وظيفي (Job Offer) - مطابق تماماً للنموذج الأصلي
-   ============================================================ */
-function joPlain(n){ return String(num(n)); }
-function joRow(enLabel, val, arLabel){
-  return `<tr><td class="en" dir="ltr">${enLabel}</td><td class="val" dir="rtl">${val}</td><td class="arlbl" dir="rtl">${arLabel}</td></tr>`;
-}
-function joTable(headAr, rowsHtml){
-  return `<table class="jo-table" dir="ltr"><thead><tr><th colspan="3" dir="rtl">${headAr}</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
-}
-
-const FORM_JOB_OFFER = {
-  id:'job-offer', cat:'recruitment', titleAr:'عرض وظيفي',
-  standalone:true,
-  manualFields:[
-    {key:'company', label:'الشركة', type:'select', options:Object.keys(COMPANIES), default:'بيت هايل لمواد البناء'},
-    {key:'date', label:'التاريخ (ميلادي)', type:'date', default:()=>new Date().toISOString().slice(0,10)},
-    {key:'hijriDate', label:'التاريخ (هجري) - نص حر', type:'text', default:''},
-    {key:'candidateName', label:'الاسم', type:'text'},
-    {key:'nationality', label:'الجنسية', type:'text'},
-    {key:'idNumber', label:'رقم الهوية', type:'text'},
-    {key:'jobTitle', label:'المسمى الوظيفي', type:'text'},
-    {key:'probationDays', label:'فترة التجربة (يوم)', type:'number', default:'90'},
-    {key:'contractDuration', label:'مدة العقد', type:'text', default:'سنة واحدة'},
-    {key:'basicSalary', label:'الراتب الأساسي', type:'number'},
-    {key:'housingAllowance', label:'بدل السكن', type:'number'},
-    {key:'transportAllowance', label:'بدل نقل', type:'number'},
-    {key:'salaryNotes', label:'ملاحظات على الراتب (كل بند بسطر)', type:'textarea', default:'عمولة على المبيعات حسب سياسة الشركة\nتلتزم الشركة بتوفير النقل للموظف'},
-    {key:'medicalInsurance', label:'التأمين الطبي', type:'select', options:['مؤمن','غير مؤمن'], default:'مؤمن'},
-    {key:'annualVacation', label:'الاجازة السنوية (يوم)', type:'number', default:'21'},
-    {key:'lastAcceptDate', label:'آخر يوم لقبول العرض', type:'date'},
-  ],
-  render(emp, m){
-    const co = COMPANIES[m.company] || DEFAULT_COMPANY;
-    const dateStr = m.date ? fmtDate(m.date) : todayStr();
-    const total = num(m.basicSalary) + num(m.housingAllowance) + num(m.transportAllowance);
-    const notes = (m.salaryNotes||'').split('\n').map(s=>s.trim()).filter(Boolean);
-
-    return `
-      <div class="jo-page"><div class="jo-content">
-      <div class="jo-header"><img src="assets/logo.png" alt=""></div>
-
-      <div class="jo-title-band">
-        <h1>عرض وظيفي</h1>
-        <h2>Job offer</h2>
-      </div>
-
-      <div class="jo-date-row">
-        <span class="ar">التاريخ : ${m.hijriDate ? esc(m.hijriDate) : '—'}</span>
-        <span class="en">Date : ${dateStr}</span>
-      </div>
-
-      ${joTable('معلومات الموظف',
-        joRow('Name', esc(m.candidateName)||'—', 'الاسم') +
-        joRow('Nationality', esc(m.nationality)||'—', 'الجنسية') +
-        joRow('ID Number', esc(m.idNumber)||'—', 'رقم الهوية')
-      )}
-
-      ${joTable('العقد',
-        joRow('Job Title', esc(m.jobTitle)||'—', 'المسمى الوظيفي') +
-        joRow('Probation', `${joPlain(m.probationDays||90)}يوم`, 'فترة التجربة') +
-        joRow('Duration of the contract', esc(m.contractDuration)||'—', 'مدة العقد')
-      )}
-
-      ${joTable('مفردات الراتب',
-        joRow('Basic salary', joPlain(m.basicSalary), 'الراتب الأساسي') +
-        joRow('Housing allowance', joPlain(m.housingAllowance), 'بدل السكن') +
-        joRow('Transfer allowance', joPlain(m.transportAllowance), 'بدل نقل') +
-        joRow('Total salary', `<b>${joPlain(total)}</b>`, 'اجمالي الراتب')
-      )}
-
-      ${notes.length ? `<div class="jo-note">${notes.map(n=>esc(n)).join('<br>')}</div>` : ''}
-
-      ${joTable('التأمين الطبي والاجازات',
-        joRow('Medical Insurance', esc(m.medicalInsurance)||'—', 'التأمين الطبي') +
-        joRow('Annual vacation', `${joPlain(m.annualVacation||21)}يوم`, 'الاجازة السنوية')
-      )}
-
-      <p class="jo-plain">باقي الشروط حسب النظام المتبع بالشركة</p>
-      <p class="jo-plain">علماً أن آخر يوم لقبول العرض في تاريخ <b>${m.lastAcceptDate?fmtDate(m.lastAcceptDate):'—'}</b></p>
-
-      <p class="jo-plain">موافق على الشروط أعلاه باعتبار أول يوم عمل لي بالشركة يوم &nbsp;___ / ___ / ___&nbsp; وعلى ذلك جرى التوقيع</p>
-
-      <div class="jo-signrow">
-        الاسم : ____________________________<br>
-        التوقيع : ____________________________<br>
-        التاريخ : ____________________________
-      </div>
-
-      <div class="jo-footer">
-        <span>المدير التنفيذي</span>
-        <span>مدير إدارة الموارد البشرية</span>
-      </div>
-      </div></div>`;
+      <div class="sign-grid two" style="margin-top:60px">${signBox('توقيع الموظف على أقواله')}${signBox('توقيع لجنة التحقيق')}</div>
+      ${docFooter(emp)}`;
   }
 };
 
@@ -1517,8 +1441,6 @@ const FORM_JOB_OFFER = {
    تسجيل جميع النماذج
    ============================================================ */
 const FORMS = [
-  // التوظيف والعروض الوظيفية
-  FORM_JOB_OFFER,
   // الشهادات والتعريفات
   FORM_TAAREEF_AR, FORM_TAAREEF_EN, FORM_SHAHADAT_KHIBRA, FORM_MAALOOMAT_MUWAZAF, FORM_MALAF_MUWAZAF,
   FORM_TAAREEF_SAFARA, FORM_TAAREEF_RATIB_SAFARAT, FORM_ADAM_MUMANAA, FORM_TAAREEF_RATIB, FORM_TAAREEF_TATHBEET_RIYAD, FORM_TAAREEF_TATHBEET_ALINMA, FORM_TAAREEF_TATHBEET_RATIB, FORM_TAAREEF_MUWAZAF_EOS,
