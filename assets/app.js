@@ -29,14 +29,29 @@ function pad2(n){ return String(n).padStart(2,"0"); }
 
 function excelDateToJS(v){
   if(v==null || v==="") return null;
-  if(v instanceof Date) return v;
   if(typeof v === "number"){
-    // Excel serial date
-    const d = new Date(Math.round((v - 25569) * 86400 * 1000));
-    return isNaN(d.getTime()) ? null : d;
+    // Excel serial date: نحسب السنة/الشهر/اليوم من UTC ثم نبني تاريخًا محليًا بمنتصف الليل
+    // (تفادي أي انزياح يوم بسبب توقيت الجهاز)
+    const u = new Date(Math.round((v - 25569) * 86400 * 1000));
+    if(isNaN(u.getTime())) return null;
+    return new Date(u.getUTCFullYear(), u.getUTCMonth(), u.getUTCDate());
+  }
+  if(v instanceof Date){
+    if(isNaN(v.getTime())) return null;
+    // تواريخ SheetJS (cellDates:true) تُبنى دائمًا بتوقيت UTC عند 00:00:00.000
+    // نعيد بناءها بالتوقيت المحلي حتى لا تنزاح يومًا كاملًا حسب توقيت الجهاز
+    if(v.getUTCHours()===0 && v.getUTCMinutes()===0 && v.getUTCSeconds()===0 && v.getUTCMilliseconds()===0){
+      return new Date(v.getUTCFullYear(), v.getUTCMonth(), v.getUTCDate());
+    }
+    return v; // تاريخ/وقت حقيقي (مثل "الآن") - يُترك كما هو
   }
   const d = new Date(v);
-  return isNaN(d.getTime()) ? null : d;
+  if(isNaN(d.getTime())) return null;
+  // نصوص تاريخ فقط بصيغة YYYY-MM-DD (مثل حقول <input type="date">) تُفسَّر كـ UTC من JS
+  if(/^\d{4}-\d{2}-\d{2}$/.test(String(v).trim())){
+    return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  }
+  return d;
 }
 function fmtDate(v){
   const d = excelDateToJS(v);
