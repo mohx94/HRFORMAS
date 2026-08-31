@@ -1445,6 +1445,56 @@ const FORM_INVESTIGATION_RECORD = {
   }
 };
 
+function handoverRow(n, label){
+  return `<tr><td>${n}</td><td style="text-align:right">${label}</td>
+    <td style="white-space:nowrap">☐ تم التسليم &nbsp; ☐ لا ينطبق</td>
+    <td>&nbsp;</td></tr>`;
+}
+function handoverBlankRow(n){
+  return `<tr><td>${n}</td><td style="text-align:right">&nbsp;</td>
+    <td style="white-space:nowrap">☐ تم التسليم &nbsp; ☐ لا ينطبق</td>
+    <td>&nbsp;</td></tr>`;
+}
+const FORM_HANDOVER = {
+  id:'employee-handover', cat:'operations', titleAr:'نموذج تسليم واستلام العهدة والمهام',
+  manualFields:[
+    {key:'date', label:'تاريخ التسليم', type:'date', default:()=>new Date().toISOString().slice(0,10)},
+    {key:'reason', label:'سبب التسليم', type:'text'},
+    {key:'lastDay', label:'آخر يوم عمل (إن وجد)', type:'date'},
+    {key:'receivingManager', label:'اسم المستلم / المدير المباشر', type:'text'},
+  ],
+  render(emp,m){
+    return `
+      <div class="compact">
+      ${docHeader(emp,'نموذج تسليم واستلام العهدة والمهام','Handover Form')}
+      <div class="row">${kv('اسم الموظف المسلِّم', emp.nameAr)}${kv('الرقم الوظيفي', emp.jobNo)}</div>
+      <div class="row">${kv('الوظيفة', emp.jobTitleAr)}${kv('القسم', emp.deptAr)}</div>
+      <div class="row">${kv('تاريخ التسليم', m.date?fmtDate(m.date):todayStr())}${kv('آخر يوم عمل', m.lastDay?fmtDate(m.lastDay):'')}</div>
+      <div class="row">${kv('سبب التسليم', m.reason)}${kv('يستلم منه (المدير المباشر)', m.receivingManager)}</div>
+      <div class="section-title">العهد والمهام المسلَّمة</div>
+      <table class="doc-table">
+        <thead><tr><th style="width:26px">#</th><th>البند</th><th style="width:170px">الحالة</th><th>ملاحظات</th></tr></thead>
+        <tbody>
+          ${handoverRow(1,'مفاتيح المكتب / المستودع')}
+          ${handoverRow(2,'بطاقة الدخول / البصمة')}
+          ${handoverRow(3,'جهاز لابتوب / حاسب')}
+          ${handoverRow(4,'هاتف / خط الشركة')}
+          ${handoverRow(5,'سيارة الشركة')}
+          ${handoverRow(6,'أدوات وعُهد أخرى')}
+          ${handoverRow(7,'ملفات ومستندات العمل')}
+          ${handoverRow(8,'تسليم المهام والأعمال الجارية لمن يتولاها')}
+          ${handoverRow(9,'تصفية الحسابات المالية مع القسم المختص')}
+          ${handoverBlankRow(10)}
+          ${handoverBlankRow(11)}
+        </tbody>
+      </table>
+      <p class="para" style="font-size:12px;margin:6px 0 0">أقر أنا الموظف المذكور أعلاه بتسليم كافة ما ورد أعلاه بحالة جيدة، كما يقر المستلم باستلامه وفق ما هو موضح.</p>
+      <div class="sign-grid" style="margin-top:34px">${signBox('الموظف المسلِّم')}${signBox('المدير المباشر (المستلم)')}${signBox('الموارد البشرية')}</div>
+      ${docFooter(emp)}
+      </div>`;
+  }
+};
+
 /* ============================================================
    تسجيل جميع النماذج
    ============================================================ */
@@ -1466,5 +1516,5 @@ const FORMS = [
   FORM_SALARY_ADJUST_1, FORM_SALARY_ADJUST_2,
   // العمليات اليومية
   FORM_ABSENCE_WARNING, FORM_BUSINESS_TRIP, FORM_TRAVEL_DUES,
-  FORM_ASSIGNMENT_REPORT, FORM_MUBASHARAT_AMAL, FORM_INVESTIGATION_RECORD,
+  FORM_ASSIGNMENT_REPORT, FORM_MUBASHARAT_AMAL, FORM_INVESTIGATION_RECORD, FORM_HANDOVER,
 ];
